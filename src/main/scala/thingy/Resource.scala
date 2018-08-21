@@ -1,12 +1,58 @@
-package jaas;
+package thingy
 
-import java.security.Principal;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.security.Principal
 
-public class Resource {
+import scala.collection.SortedSet
+import scala.collection.mutable.ListBuffer
 
-    public static final Resource ROOT = new Resource();
+object Resource {
+   val ROOT = Resource("ROOT")
+}
+
+case class Resource(name:String, var parent:Option[Resource] = None, principals:ListBuffer[Principal] = ListBuffer(), actions:ListBuffer[String] = ListBuffer(), nested:Map[String, Resource] = Map()) {
+
+  def byPrincipal(principal:String*):Resource = {
+    principal.map(p => SimplePrincipal(p)).foreach(p => principals += p)
+    this
+  }
+
+  def permitsActions(action:String*): Resource = {
+    action.foreach(a => actions += a)
+    this
+  }
+
+  def resource(name:String):Resource = ???
+//    if(this.nested.containsKey(name)) {
+//      return this.nested.get(name);
+//    }
+//    Resource r = new Resource(name, this);
+//    this.nested.put(name, r);
+//    return r;
+//  }
+
+  def find(resource:String):PermissionModel = ???
+//    return find(new TreeSet(Arrays.asList(resource.split("[/ | \\.]"))));
+//  }
+
+  def find(resource:SortedSet[String]):PermissionModel = ???
+//    if(resource.isEmpty()) return new SimplePermissionModel();
+//    Iterator<String> it = resource.iterator();
+//    String head = it.next();
+//    if(it.hasNext()) {
+//      SortedSet<String> tail = resource.tailSet(it.next());
+//      return resource(head).find(tail);
+//    }
+//    return new SimplePermissionModel(resource(head), null);
+//  }
+
+  def test(action:String, p:Principal):Boolean = ???
+//    return ("*".equals(action) || this.actions.contains(action)) && this.principals.contains(p) || (this.parent != null && this.parent.test(action, p));
+//  }
+}
+
+/**
+
+public static final Resource ROOT = new Resource();
 
     private final String name;
     private Resource parent;
@@ -65,6 +111,6 @@ public class Resource {
         return ("*".equals(action) || this.actions.contains(action)) && this.principals.contains(p) || (this.parent != null && this.parent.test(action, p));
     }
 
-}
 
 
+  */

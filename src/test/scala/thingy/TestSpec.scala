@@ -1,28 +1,19 @@
-package jaas;
+package thingy
+
+import org.apache.logging.log4j.scala.Logging
+import org.scalatest._
+
+class TestSpec extends FlatSpec with Matchers with Logging {
+
+    "A State" should "do something" in {
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.testng.annotations.BeforeTest;
-import org.testng.annotations.Test;
+    }
 
-import javax.security.auth.Subject;
-import javax.security.auth.login.AppConfigurationEntry;
-import javax.security.auth.login.Configuration;
-import javax.security.auth.login.LoginContext;
-import javax.security.auth.login.LoginException;
-import java.security.*;
-import java.util.Arrays;
-import java.util.Collections;
+  /**
 
-public class UnitTest {
-
-    private static final Logger logger = LoggerFactory.getLogger(UnitTest.class);
-    // https://docs.oracle.com/javase/7/docs/technotes/guides/security/jaas/tutorials/GeneralAcnOnly.html#MyCallbackHandler
-    // https://docs.oracle.com/javase/7/docs/technotes/guides/security/jaas/tutorials/GeneralAcnAndAzn.html
-
-    @BeforeTest
-    public void setUp() {
+  @BeforeTest
+  public void setUp() {
         Resource.ROOT.permitsActions("*").byPrincipal("me");
         Resource.ROOT.resource("A").permitsActions("read", "write").byPrincipal("fred")
                          .resource("A1")
@@ -35,8 +26,8 @@ public class UnitTest {
                                  .resource("C3").permitsActions("read", "write", "execute").byPrincipal("boris");
     }
 
-    @Test
-    public void testIt() {
+  @Test
+  public void testIt() {
 
 //        System.setProperty("login.configuration.provider", MyConfiguration.class.getName());
 //        logger.info("login.configuration.provider: "+System.getProperty("login.configuration.provider"));
@@ -45,8 +36,8 @@ public class UnitTest {
         Policy.setPolicy(new Policy() {
 
 
-            @Override
-            public boolean implies(ProtectionDomain domain, Permission permission) {
+  @Override
+  public boolean implies(ProtectionDomain domain, Permission permission) {
                 if (permission instanceof MyPermission) {
                     MyPermission myPermission = MyPermission.class.cast(permission);
                     return Arrays.asList(domain.getPrincipals()).stream().anyMatch(p -> myPermission.model.test(p));
@@ -110,8 +101,8 @@ public class UnitTest {
     }
 
     private class MyConfiguration extends Configuration {
-        @Override
-        public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+  @Override
+  public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
             return new AppConfigurationEntry[]{new AppConfigurationEntry(SampleLoginModule.class.getName(), AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, Collections.EMPTY_MAP)};
         }
     }
@@ -135,8 +126,8 @@ public class UnitTest {
             this.model = Resource.ROOT.find(resource).withAction(action);
         }
 
-        @Override
-        public boolean implies(Permission permission) {
+  @Override
+  public boolean implies(Permission permission) {
             if(permission instanceof MyPermission) {
                 MyPermission p = MyPermission.class.cast(permission);
                 return p.implies(this);
@@ -146,4 +137,7 @@ public class UnitTest {
 
     }
 
-}
+
+
+    */
+  }
