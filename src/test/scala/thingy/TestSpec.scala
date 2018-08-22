@@ -40,13 +40,25 @@ class TestSpec extends FlatSpec with Matchers with Logging {
       Configuration.setConfiguration(new MyConfiguration())
       Policy.setPolicy(policy)
 
+
       val resource = "A/A1/A2"
       val action = "read"
-      val perm = new MyPermission("fred", resource, action, Resource.ROOT.find(resource).withAction(action))
+      val perm = new MyPermission("thingy", resource, action, Resource.ROOT.find(resource).withAction(action))
+
       var role = "barney"
-      testIt(perm,"trader_role", role) should be (Success(true))
+      var subject = authenticate("trader_role", role)
+      subject should be (successFor("trader_role", role))
+      testIt(perm,subject.get) should be (Success(true))
+
       role = "wilma"
-      testIt(perm,"trader_role", role) should be (Success(false))
+      subject = authenticate("trader_role", role)
+      subject should be (successFor("trader_role", role))
+      testIt(perm,subject.get) should be (Success(false))
+
+      role = "fred"
+      subject = authenticate("trader_role", role)
+      subject should be (successFor("trader_role", role))
+      testIt(perm,subject.get) should be (Success(true))
     }
 
   def successFor(roles: String*):Success[Subject] = {
@@ -61,7 +73,7 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     Failure[Subject](new AccessControlException("access denied "+perm.toString, perm))
   }
 
-  def testIt(permission:Permission, principals:String*):Try[Boolean] = {
+  def authenticate(principals:String*):Try[Subject] = {
     val subject = new Subject()
 
     try {
@@ -70,6 +82,9 @@ class TestSpec extends FlatSpec with Matchers with Logging {
       // attempt authentication
       lc.login()
 
+
+      logger.info("Authentication succeeded!")
+      Success(subject)
     } catch {
       case e: LoginException => {
         logger.error(e.getMessage(), e)
@@ -80,8 +95,9 @@ class TestSpec extends FlatSpec with Matchers with Logging {
         Failure(e)
       }
     }
+  }
 
-    logger.info("Authentication succeeded!")
+  def testIt(permission:Permission, subject:Subject):Try[Boolean] = {
 
     Subject.doAsPrivileged[Try[Boolean]](subject, new PrivilegedAction[Try[Boolean]] {
       override def run(): Try[Boolean] = {
