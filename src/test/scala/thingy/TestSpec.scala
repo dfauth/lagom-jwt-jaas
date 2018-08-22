@@ -1,6 +1,6 @@
 package thingy
 
-import java.security.{PrivilegedAction, _}
+import java.security.{AccessControlException, PrivilegedAction, _}
 import java.util.Collections
 
 import javax.security.auth.Subject
@@ -42,9 +42,11 @@ class TestSpec extends FlatSpec with Matchers with Logging {
 
       val resource = "A/A1/A2"
       val action = "read"
-      val result = testIt(new MyPermission("fred", resource, action, Resource.ROOT.find(resource).withAction(action)),"trader_role", "barney")
-
-      result should be (successFor("trader_role", "barney"))
+      val perm = new MyPermission("fred", resource, action, Resource.ROOT.find(resource).withAction(action))
+      var role = "barney"
+      testIt(perm,"trader_role", role) should be (Success(true))
+      role = "wilma"
+      testIt(perm,"trader_role", role) should be (Success(false))
     }
 
   def successFor(roles: String*):Success[Subject] = {
@@ -55,7 +57,11 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     }))
   }
 
-  def testIt(permission:Permission, principals:String*):Try[Subject] = {
+  def failureFor(perm:Permission, roles: String*):Failure[Subject] = {
+    Failure[Subject](new AccessControlException("access denied "+perm.toString, perm))
+  }
+
+  def testIt(permission:Permission, principals:String*):Try[Boolean] = {
     val subject = new Subject()
 
     try {
@@ -77,15 +83,15 @@ class TestSpec extends FlatSpec with Matchers with Logging {
 
     logger.info("Authentication succeeded!")
 
-    Subject.doAsPrivileged[Try[Subject]](subject, new PrivilegedAction[Try[Subject]] {
-      override def run(): Try[Subject] = {
+    Subject.doAsPrivileged[Try[Boolean]](subject, new PrivilegedAction[Try[Boolean]] {
+      override def run(): Try[Boolean] = {
         try {
           AccessController.checkPermission(permission)
-          Success(subject)
+          Success(true)
         } catch {
           case e: AccessControlException => {
             logger.error(e.getMessage(), e)
-            Failure(e)
+            Success(false)
           }
           case t:Throwable => {
             logger.error(t.getMessage(), t)
@@ -93,8 +99,6 @@ class TestSpec extends FlatSpec with Matchers with Logging {
           }
         }
       }
-      //        }, AccessController.getContext)
-      //        }, new AccessControlContext(Array[ProtectionDomain](new ProtectionDomain(new CodeSource(new URL(""), Array[java.security.cert.Certificate]())), true))
     }, new AccessControlContext(Array[java.security.ProtectionDomain]()))
   }
 
