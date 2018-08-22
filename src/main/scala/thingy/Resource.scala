@@ -47,7 +47,7 @@ case class Resource(name:String, var parent:Option[Resource] = None, principals:
   }
 
   def test(action:String, p:Principal):Boolean = {
-    (("*".equals(action) || actions.contains(action)) && principals.contains(p)) || parent.map(r => r.test(action, p)).getOrElse(false)
+    ((actions.contains("*") || actions.contains(action)) && principals.contains(p)) || parent.map(r => r.test(action, p)).getOrElse(false)
   }
 }
 

@@ -35,31 +35,54 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     }
   }
 
-    "A State" should "do something" in {
+  def createPermission(resource: String, action: String):Permission = {
+    createPermission(resource, action, Resource.ROOT)
+  }
 
-      Configuration.setConfiguration(new MyConfiguration())
-      Policy.setPolicy(policy)
+  def createPermission(resource: String, action: String, resourceImpl:Resource):Permission = {
+    new MyPermission("thingy", resource, action, resourceImpl.find(resource).withAction(action))
+  }
+
+  "Authorisation" should "do more that check for some stupid role..." in {
+
+    Configuration.setConfiguration(new MyConfiguration())
+    Policy.setPolicy(policy)
 
 
-      val resource = "A/A1/A2"
-      val action = "read"
-      val perm = new MyPermission("thingy", resource, action, Resource.ROOT.find(resource).withAction(action))
+    // seeking permission to 'read' resource 'A/A1/A2'
+    var perm = createPermission("A/A1/A2", "read")
 
-      var role = "barney"
-      var subject = authenticate("trader_role", role)
-      subject should be (successFor("trader_role", role))
-      testIt(perm,subject.get) should be (Success(true))
+    // as role 'barney'
+    var role = "barney"
+    var subject = authenticate("trader_role", role)
+    subject should be (successFor("trader_role", role))
+    // the policy above explicitly allows this
+    testIt(perm,subject.get) should be (Success(true))
 
-      role = "wilma"
-      subject = authenticate("trader_role", role)
-      subject should be (successFor("trader_role", role))
-      testIt(perm,subject.get) should be (Success(false))
+    // as role 'wilma'
+    role = "wilma"
+    subject = authenticate("trader_role", role)
+    subject should be (successFor("trader_role", role))
+    // the policy does not have wilma against this resource
+    testIt(perm,subject.get) should be (Success(false))
 
-      role = "fred"
-      subject = authenticate("trader_role", role)
-      subject should be (successFor("trader_role", role))
-      testIt(perm,subject.get) should be (Success(true))
-    }
+    // as role 'fred' yabbadabbadoo
+    role = "fred"
+    subject = authenticate("trader_role", role)
+    subject should be (successFor("trader_role", role))
+    // the policy has fred attached the the resource hierarchy above this resource
+    testIt(perm,subject.get) should be (Success(true))
+
+    // however if we change the action fred it trying to perform to execute, this will fail as it is not explicityly allowed
+    perm = createPermission("A/A1/A2", "execute")
+    testIt(perm,subject.get) should be (Success(false))
+
+    // role 'me' has all actions
+    role = "me"
+    subject = authenticate(role)
+    subject should be (successFor(role))
+    testIt(perm,subject.get) should be (Success(true))
+  }
 
   def successFor(roles: String*):Success[Subject] = {
     val subject = new Subject()
@@ -133,10 +156,9 @@ class TestSpec extends FlatSpec with Matchers with Logging {
        }
     }
 
+    override def toString: String = {
+      "MyPermission("+resource+", "+action+")"
+    }
   }
-
-
-
-
 }
 
