@@ -82,6 +82,15 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     subject = authenticate(role)
     subject should be (successFor(role))
     testIt(perm,subject.get) should be (Success(true))
+
+    // simple role based authorization
+    perm = new MyPermission("role-based", "*", "*", Resource.ROOT.find("ROOT").withAction("*"))
+    testIt(perm,subject.get) should be (Success(true))
+
+    // as barney
+    role = "barney"
+    subject = authenticate(role)
+    testIt(perm,subject.get) should be (Success(false))
   }
 
   def successFor(roles: String*):Success[Subject] = {
