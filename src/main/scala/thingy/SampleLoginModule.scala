@@ -2,13 +2,12 @@ package thingy
 
 import java.io.IOException
 import java.util
-import java.util.Arrays
 
 import javax.security.auth.Subject
 import javax.security.auth.callback.{Callback, CallbackHandler, UnsupportedCallbackException}
 import javax.security.auth.spi.LoginModule
 
-class SampleLoginModule extends LoginModule {
+case class SampleLoginModule() extends LoginModule {
 
   var handler:CallbackHandler = ???
   var subject:Subject = ???

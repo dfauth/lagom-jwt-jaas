@@ -1,7 +1,7 @@
 package thingy
 import java.security.Principal
 
-class SimplePermissionModel(resource:Resource, var action:String) extends PermissionModel {
+case class SimplePermissionModel(resource:Resource = Resource.ROOT, var action:String = "*") extends PermissionModel {
 
   override def test(p: Principal): Boolean = resource.test(action, p)
 

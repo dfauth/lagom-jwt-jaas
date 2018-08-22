@@ -9,7 +9,7 @@ object Resource {
    val ROOT = Resource("ROOT")
 }
 
-case class Resource(name:String, var parent:Option[Resource] = None, principals:ListBuffer[Principal] = ListBuffer(), actions:ListBuffer[String] = ListBuffer(), nested:Map[String, Resource] = Map()) {
+case class Resource(name:String, var parent:Option[Resource] = None, principals:ListBuffer[Principal] = ListBuffer(), actions:ListBuffer[String] = ListBuffer(), nested:scala.collection.mutable.Map[String, Resource] = scala.collection.mutable.Map()) {
 
   def byPrincipal(principal:String*):Resource = {
     principal.map(p => SimplePrincipal(p)).foreach(p => principals += p)
@@ -21,7 +21,15 @@ case class Resource(name:String, var parent:Option[Resource] = None, principals:
     this
   }
 
-  def resource(name:String):Resource = ???
+  def resource(name:String):Resource = {
+    if(nested.contains(name)) {
+      nested(name)
+    } else {
+      val r = Resource(name, Option(this))
+      nested.put(name, r)
+      r
+    }
+  }
 //    if(this.nested.containsKey(name)) {
 //      return this.nested.get(name);
 //    }
@@ -30,11 +38,22 @@ case class Resource(name:String, var parent:Option[Resource] = None, principals:
 //    return r;
 //  }
 
-  def find(resource:String):PermissionModel = ???
+  def find(resource:String):PermissionModel = {
+    find(SortedSet(resource.split("[/ | \\.]").toList :_*))
+  }
 //    return find(new TreeSet(Arrays.asList(resource.split("[/ | \\.]"))));
 //  }
 
-  def find(resource:SortedSet[String]):PermissionModel = ???
+  def find(resource:SortedSet[String]):PermissionModel = {
+    // root resource
+        if(resource.isEmpty) {
+          SimplePermissionModel()
+        } else if(resource.tail.isEmpty) {
+          SimplePermissionModel(this.resource(resource.head))
+        } else {
+          this.resource(resource.head).find(resource.tail)
+        }
+  }
 //    if(resource.isEmpty()) return new SimplePermissionModel();
 //    Iterator<String> it = resource.iterator();
 //    String head = it.next();
@@ -45,7 +64,9 @@ case class Resource(name:String, var parent:Option[Resource] = None, principals:
 //    return new SimplePermissionModel(resource(head), null);
 //  }
 
-  def test(action:String, p:Principal):Boolean = ???
+  def test(action:String, p:Principal):Boolean = {
+    (("*".equals(action) || actions.contains(action)) && principals.contains(p)) || parent.map(r => r.test(action, p)).getOrElse(false)
+  }
 //    return ("*".equals(action) || this.actions.contains(action)) && this.principals.contains(p) || (this.parent != null && this.parent.test(action, p));
 //  }
 }
