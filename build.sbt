@@ -11,4 +11,4 @@ libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 libraryDependencies += "org.apache.logging.log4j" % "log4j-api" % "2.11.0"
 libraryDependencies += "org.apache.logging.log4j" % "log4j-core" % "2.11.0"
 libraryDependencies += "org.apache.logging.log4j" %% "log4j-api-scala" % log4jVersion
-
+libraryDependencies += "com.typesafe.play" %% "play" % "latest.integration"

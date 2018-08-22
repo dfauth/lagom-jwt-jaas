@@ -25,7 +25,7 @@ class TestSpec extends FlatSpec with Matchers with Logging {
 
 
   val policy = new Policy() {
-    override def implies(domain: ProtectionDomain, permission: Permission): Boolean = {
+    override def implies(domain: ProtectionDomain, permission: java.security.Permission): Boolean = {
       permission match {
         case p:MyPermission => {
           domain.getPrincipals.find(d => p.model.test(d)).isDefined
@@ -35,11 +35,11 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     }
   }
 
-  def createPermission(resource: String, action: String):Permission = {
+  def createPermission(resource: String, action: String):java.security.Permission = {
     createPermission(resource, action, Resource.ROOT)
   }
 
-  def createPermission(resource: String, action: String, resourceImpl:Resource):Permission = {
+  def createPermission(resource: String, action: String, resourceImpl:Resource):java.security.Permission = {
     new MyPermission("thingy", resource, action, resourceImpl.find(resource).withAction(action))
   }
 
@@ -101,7 +101,7 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     }))
   }
 
-  def failureFor(perm:Permission, roles: String*):Failure[Subject] = {
+  def failureFor(perm:java.security.Permission, roles: String*):Failure[Subject] = {
     Failure[Subject](new AccessControlException("access denied "+perm.toString, perm))
   }
 
@@ -129,7 +129,7 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     }
   }
 
-  def testIt(permission:Permission, subject:Subject):Try[Boolean] = {
+  def testIt(permission:java.security.Permission, subject:Subject):Try[Boolean] = {
 
     Subject.doAsPrivileged[Try[Boolean]](subject, new PrivilegedAction[Try[Boolean]] {
       override def run(): Try[Boolean] = {
@@ -158,7 +158,7 @@ class TestSpec extends FlatSpec with Matchers with Logging {
 
   case class MyPermission(name:String, resource:String = "*", action:String = "*", model:PermissionModel) extends BasicPermission(name) {
 
-    override def implies(permission: Permission):Boolean = {
+    override def implies(permission: java.security.Permission):Boolean = {
        permission match {
          case p:MyPermission => p.implies(this)
          case _ => false
