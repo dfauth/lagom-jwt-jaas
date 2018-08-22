@@ -7,11 +7,11 @@ import javax.security.auth.Subject
 import javax.security.auth.callback.{Callback, CallbackHandler, UnsupportedCallbackException}
 import javax.security.auth.spi.LoginModule
 
-case class SampleLoginModule() extends LoginModule {
+class SampleLoginModule extends LoginModule {
 
-  var handler:CallbackHandler = ???
-  var subject:Subject = ???
-  var principals:Array[String] = ???
+  var handler:CallbackHandler = _
+  var subject:Subject = _
+  var principals:Array[String] = _
 
 
   override def initialize(subject: Subject, callbackHandler: CallbackHandler, sharedState: util.Map[String, _], options: util.Map[String, _]): Unit = {

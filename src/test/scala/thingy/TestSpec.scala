@@ -24,66 +24,83 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     .resource("C3").permitsActions("read", "write", "execute").byPrincipal("boris")
 
 
+  val policy = new Policy() {
+    override def implies(domain: ProtectionDomain, permission: Permission): Boolean = {
+      permission match {
+        case p:MyPermission => {
+          domain.getPrincipals.find(d => p.model.test(d)).isDefined
+        }
+        case _ => super.implies(domain, permission)
+      }
+    }
+  }
+
     "A State" should "do something" in {
+
       Configuration.setConfiguration(new MyConfiguration())
-      Policy.setPolicy(new Policy() {
-        override def implies(domain: ProtectionDomain, permission: Permission): Boolean = {
-          permission match {
-            case p:MyPermission => domain.getPrincipals.find(d => p.model.test(d)).isDefined
-            case _ => super.implies(domain, permission)
-          }
-        }
+      Policy.setPolicy(policy)
 
-        testIt("A/A1/A2", "read", "trader_role", "barney");
-      })
+      val resource = "A/A1/A2"
+      val action = "read"
+      val result = testIt(new MyPermission("fred", resource, action, Resource.ROOT.find(resource).withAction(action)),"trader_role", "barney")
 
-      def testIt(resource:String, action:String, principals:String*):Try[Subject] = {
-        val subject = new Subject()
+      result should be (successFor("trader_role", "barney"))
+    }
 
-        try {
-          val lc = new LoginContext("Sample", subject, MyCallbackHandler(principals.toArray))
+  def successFor(roles: String*):Success[Subject] = {
+    val subject = new Subject()
+    Success(roles.map(SimplePrincipal(_)).foldLeft[Subject](subject:Subject)((s, p) => {
+      s.getPrincipals().add(p)
+      s
+    }))
+  }
 
-          // attempt authentication
-          lc.login()
-          Success(subject)
+  def testIt(permission:Permission, principals:String*):Try[Subject] = {
+    val subject = new Subject()
 
-        } catch {
-          case e: LoginException => {
-            logger.error(e.getMessage(), e)
-            Failure(e)
-          }
-          case e: SecurityException => {
-            logger.error(e.getMessage(), e)
-            Failure(e)
-          }
-        }
+    try {
+      val lc = new LoginContext("Sample", subject, MyCallbackHandler(principals.toArray))
 
-        logger.info("Authentication succeeded!")
+      // attempt authentication
+      lc.login()
 
-        Subject.doAs[Try[Subject]](subject, new PrivilegedAction[Try[Subject]] {
-          override def run(): Try[Subject] = {
-            try {
-              AccessController.checkPermission(new MyPermission("fred", resource, action, Resource.ROOT.find(resource).withAction(action)))
-              Success(subject)
-            } catch {
-              case e: AccessControlException => {
-                logger.error(e.getMessage(), e)
-                Failure(e)
-              }
-              case t:Throwable => {
-                logger.error(t.getMessage(), t)
-                Failure(t)
-              }
-            }
-          }
-        })
-        Success(subject)
+    } catch {
+      case e: LoginException => {
+        logger.error(e.getMessage(), e)
+        Failure(e)
+      }
+      case e: SecurityException => {
+        logger.error(e.getMessage(), e)
+        Failure(e)
       }
     }
 
+    logger.info("Authentication succeeded!")
+
+    Subject.doAsPrivileged[Try[Subject]](subject, new PrivilegedAction[Try[Subject]] {
+      override def run(): Try[Subject] = {
+        try {
+          AccessController.checkPermission(permission)
+          Success(subject)
+        } catch {
+          case e: AccessControlException => {
+            logger.error(e.getMessage(), e)
+            Failure(e)
+          }
+          case t:Throwable => {
+            logger.error(t.getMessage(), t)
+            Failure(t)
+          }
+        }
+      }
+      //        }, AccessController.getContext)
+      //        }, new AccessControlContext(Array[ProtectionDomain](new ProtectionDomain(new CodeSource(new URL(""), Array[java.security.cert.Certificate]())), true))
+    }, new AccessControlContext(Array[java.security.ProtectionDomain]()))
+  }
+
   class MyConfiguration extends Configuration {
     override def getAppConfigurationEntry(name: String): Array[AppConfigurationEntry] = {
-      Array[AppConfigurationEntry](new AppConfigurationEntry(SampleLoginModule.getClass.getName, AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, Collections.emptyMap()))
+      Array[AppConfigurationEntry](new AppConfigurationEntry("thingy.SampleLoginModule", AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, Collections.emptyMap()))
     }
   }
 
@@ -98,121 +115,8 @@ class TestSpec extends FlatSpec with Matchers with Logging {
 
   }
 
+
+
+
 }
 
-  /**
-
-//  @Test
-  public void testIt() {
-
-//        System.setProperty("login.configuration.provider", MyConfiguration.class.getName());
-//        logger.info("login.configuration.provider: "+System.getProperty("login.configuration.provider"));
-        Configuration.setConfiguration(new MyConfiguration());
-
-        Policy.setPolicy(new Policy() {
-
-
-//  @Override
-  public boolean implies(ProtectionDomain domain, Permission permission) {
-                if (permission instanceof MyPermission) {
-                    MyPermission myPermission = MyPermission.class.cast(permission);
-                    return Arrays.asList(domain.getPrincipals()).stream().anyMatch(p -> myPermission.model.test(p));
-                }
-                return super.implies(domain, permission);
-            }
-        });
-
-        testIt("A/A1/A2", "read", "trader_role", "barney");
-    }
-
-    public void testIt(String resource, String action, String... principals) {
-        Subject subject = new Subject();
-
-        LoginContext lc = null;
-        try {
-            lc = new LoginContext("Sample", subject, new MyCallbackHandler(principals));
-
-            // the user has 3 attempts to authenticate successfully
-            int i;
-            for (i = 0; i < 3; i++) {
-                try {
-
-                    // attempt authentication
-                    lc.login();
-
-                    // if we return with no exception,
-                    // authentication succeeded
-                    break;
-
-                } catch (LoginException e) {
-                    logger.error(e.getMessage(), e);
-                    throw new RuntimeException(e);
-                }
-            }
-
-            // did they fail three times?
-            if (i == 3) {
-                throw new RuntimeException("Sorry");
-            }
-        } catch (LoginException e) {
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e);
-        } catch (SecurityException e) {
-            logger.error(e.getMessage(), e);
-            throw new RuntimeException(e);
-        }
-
-        logger.info("Authentication succeeded!");
-
-        Subject.doAs(subject, (PrivilegedAction<Void>) () -> {
-            try {
-                AccessController.checkPermission(new MyPermission("fred", resource, action));
-                return null;
-            } catch (AccessControlException e) {
-                logger.error(e.getMessage(), e);
-                throw new RuntimeException(e);
-            }
-        });
-
-    }
-
-    private class MyConfiguration extends Configuration {
-//  @Override
-  public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
-            return new AppConfigurationEntry[]{new AppConfigurationEntry(SampleLoginModule.class.getName(), AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, Collections.EMPTY_MAP)};
-        }
-    }
-
-    private static class MyPermission extends BasicPermission {
-
-        private final String resource;
-        private final PermissionModel model;
-
-        public MyPermission(String name) {
-            this(name, "*", "*");
-        }
-
-        public MyPermission(String name, String resource) {
-            this(name, resource, "*");
-        }
-
-        public MyPermission(String name, String resource, String action) {
-            super(name);
-            this.resource = resource;
-            this.model = Resource.ROOT.find(resource).withAction(action);
-        }
-
-//  @Override
-  public boolean implies(Permission permission) {
-            if(permission instanceof MyPermission) {
-                MyPermission p = MyPermission.class.cast(permission);
-                return p.implies(this);
-            }
-            return false;
-        }
-
-    }
-
-
-
-    */
