@@ -12,17 +12,28 @@ import scala.util.{Failure, Success, Try}
 
 class TestSpec extends FlatSpec with Matchers with Logging {
 
-  Resource.ROOT.permitsActions("*").byPrincipal("me")
-  Resource.ROOT.resource("A").permitsActions("read", "write").byPrincipal("fred")
-    .resource("A1")
-    .resource("A2").permitsActions("read", "write", "execute").byPrincipal("barney", "bambam")
-  Resource.ROOT.resource("B").permitsActions("read").byPrincipal("wilma")
-    .resource("B1").permitsActions("poke").byPrincipal("roger")
-  Resource.ROOT.resource("C").permitsActions("read").byPrincipal("wilma")
-    .resource("C1")
-    .resource("C2")
-    .resource("C3").permitsActions("read", "write", "execute").byPrincipal("boris")
+  HierarchicalResource.ROOT.permitsActions("*").byPrincipal("me")
+  val A = HierarchicalResource.ROOT.resource("A")
+    A.permitsActions("read", "write").byPrincipal("fred")
+    A.resource("A1").resource("A2").permitsActions("read", "write", "execute").byPrincipal("barney", "bambam")
+  val B = HierarchicalResource.ROOT.resource("B")
+    B.permitsActions("read").byPrincipal("wilma")
+    B.resource("B1").permitsActions("poke").byPrincipal("roger")
+  val C = HierarchicalResource.ROOT.resource("C")
+    C.permitsActions("read").byPrincipal("wilma")
+    C.resource("C1").resource("C2").resource("C3").permitsActions("read", "write", "execute").byPrincipal("boris")
 
+//  HierarchicalResource.ROOT.permitsActions("*").byPrincipal("me")
+//  HierarchicalResource.ROOT.resource("A").permitsActions("read", "write").byPrincipal("fred")
+//    .resource("A1")
+//    .resource("A2").permitsActions("read", "write", "execute").byPrincipal("barney", "bambam")
+//  HierarchicalResource.ROOT.resource("B").permitsActions("read").byPrincipal("wilma")
+//    .resource("B1").permitsActions("poke").byPrincipal("roger")
+//  HierarchicalResource.ROOT.resource("C").permitsActions("read").byPrincipal("wilma")
+//    .resource("C1")
+//    .resource("C2")
+//    .resource("C3").permitsActions("read", "write", "execute").byPrincipal("boris")
+//
 
   val policy = new Policy() {
     override def implies(domain: ProtectionDomain, permission: java.security.Permission): Boolean = {
@@ -36,10 +47,10 @@ class TestSpec extends FlatSpec with Matchers with Logging {
   }
 
   def createPermission(resource: String, action: String):java.security.Permission = {
-    createPermission(resource, action, Resource.ROOT)
+    createPermission(resource, action, HierarchicalResource.ROOT)
   }
 
-  def createPermission(resource: String, action: String, resourceImpl:Resource):java.security.Permission = {
+  def createPermission(resource: String, action: String, resourceImpl:HierarchicalResource):java.security.Permission = {
     new MyPermission("thingy", resource, action, resourceImpl.find(resource).withAction(action))
   }
 
@@ -84,7 +95,7 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     testIt(perm,subject.get) should be (Success(true))
 
     // simple role based authorization
-    perm = new MyPermission("role-based", "*", "*", Resource.ROOT.find("ROOT").withAction("*"))
+    perm = new MyPermission("role-based", "*", "*", HierarchicalResource.ROOT.find("ROOT").withAction("*"))
     testIt(perm,subject.get) should be (Success(true))
 
     // as barney
@@ -156,7 +167,7 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     }
   }
 
-  case class MyPermission(name:String, resource:String = "*", action:String = "*", model:PermissionModel) extends BasicPermission(name) {
+  case class MyPermission(name:String, resource:String = "*", action:String = "*", model:PolicyModel) extends BasicPermission(name) {
 
     override def implies(permission: java.security.Permission):Boolean = {
        permission match {
