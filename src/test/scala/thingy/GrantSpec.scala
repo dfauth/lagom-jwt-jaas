@@ -8,19 +8,63 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
 
   "Json serialization" should "work" in {
 
-    val grant = Grant(Set("bob","fred"), Set(Permission("name1","resource1","action1"), Permission("name2","resource2","action2")))
-    logger.info("grant: "+grant)
+    var g = Grant(Set(Permission("name1","resource1","action1"), Permission("name2","resource2","action2")), Set("bob","fred"))
+    logger.info("grant: "+g)
 
-    val serialized = Json.toJson[Grant](grant)
+    var serialized = Json.toJson[Grant](g)
 
     logger.info("json: "+serialized)
 
-    val result = Json.fromJson[Grant](serialized).get
+    var result = Json.fromJson[Grant](serialized).get
 
     logger.info("result: "+result)
 
-    result should be (grant)
+    result should be (g)
+
+    g = grant(Set[Permission](Permission("name1","resource1","action1"), Permission("name2","resource2","action2"))).to(Set("bob", "fred"))
+    logger.info("grant: "+g)
+
+    serialized = Json.toJson[Grant](g)
+
+    logger.info("json: "+serialized)
+
+    result = Json.fromJson[Grant](serialized).get
+
+    logger.info("result: "+result)
+
+    result should be (g)
+
+    g = grant(Permission("name1","resource1","action1")).to("bob")
+    logger.info("grant: "+g)
+
+    serialized = Json.toJson[Grant](g)
+
+    logger.info("json: "+serialized)
+
+    result = Json.fromJson[Grant](serialized).get
+
+    logger.info("result: "+result)
+
+    result should be (g)
+
+    val perm:Permission = Permission("name2","resource2","action2")
+
+    grant(perm)  to "bob"
+
+    g = grant permission "fred" on "A/A1/A2" actions "read,write" to "bob"
+    result = roundTrip(g)
+    result should be (g)
+  }
+
+  def roundTrip(grant: Grant) = {
+    Json.fromJson[Grant](trace(Json.toJson[Grant](grant))).get
+  }
+
+  def trace[T](value: T): T = {
+    logger.info(s"trace: ${value}")
+    value
   }
 
 }
+
 

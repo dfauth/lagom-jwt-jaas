@@ -47,8 +47,9 @@ case class HierarchicalResource(name:String, var parent:Option[HierarchicalResou
       } else {
         parent.map(r => r.test(action, p)).getOrElse(false)
       }
+    } else {
+      parent.map(r => r.test(action, p)).getOrElse(false)
     }
-    false
 //    ((actions.contains("*") || actions.contains(action)) && principals.contains(p)) || parent.map(r => r.test(action, p)).getOrElse(false)
   }
 }

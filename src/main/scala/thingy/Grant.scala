@@ -16,14 +16,13 @@ import thingy.Permission.PermissionFormat
   *};
  *
  */
-case class Grant(principals:Set[String], permissions:Set[Permission]) {
+case class Grant(permissions:Set[Permission], principals:Set[String]) {
 
 }
 
 case class Permission(name:String, resource:String, action: String) {
 
 }
-
 
 object Permission {
   import play.api.libs.json._
@@ -57,7 +56,7 @@ object Grant {
     def reads(json: JsValue): JsResult[Grant] = {
       val permissions = (json \ "permissions").as[Set[Permission]]
       val principals = (json \ "principals").as[Set[String]]
-      JsSuccess(Grant(principals, permissions))
+      JsSuccess(Grant(permissions, principals))
     }
 
     // convert from Grant object to JSON (serializing to JSON)
