@@ -16,7 +16,8 @@ import thingy.Permission.PermissionFormat
   *};
  *
  */
-case class Grant(permissions:Set[Permission], principals:Set[String]) {
+
+case class Grant(permission:Permission, principals:Set[String], action:AuthorizationAction = AuthorizationAction.GRANT) {
 
 }
 
@@ -54,16 +55,19 @@ object Grant {
 
     // convert from JSON string to a Grant object (de-serializing from JSON)
     def reads(json: JsValue): JsResult[Grant] = {
-      val permissions = (json \ "permissions").as[Set[Permission]]
+      val permission = (json \ "permission").as[Permission]
       val principals = (json \ "principals").as[Set[String]]
-      JsSuccess(Grant(permissions, principals))
+      val action = (json \ "action").as[String]
+      JsSuccess(Grant(permission, principals, AuthorizationAction.valueOf(action)))
     }
 
     // convert from Grant object to JSON (serializing to JSON)
     def writes(s: Grant): JsValue = {
       // JsObject requires Seq[(String, play.api.libs.json.JsValue)]
       val GrantAsList = Seq("principals" -> JsArray(s.principals.map(p => JsString(p)).toIndexedSeq),
-        "permissions" -> JsArray(s.permissions.map(p => PermissionFormat.writes(p)).toIndexedSeq))
+        "permission" -> PermissionFormat.writes(s.permission),
+        "action" -> JsString(s.action.name())
+      )
       JsObject(GrantAsList)
     }
   }

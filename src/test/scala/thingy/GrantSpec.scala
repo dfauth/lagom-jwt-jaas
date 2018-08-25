@@ -8,7 +8,7 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
 
   "Json serialization" should "work" in {
 
-    var g = Grant(Set(Permission("name1","resource1","action1"), Permission("name2","resource2","action2")), Set("bob","fred"))
+    var g = Grant(Permission("name1","resource1","action1"), Set("bob","fred"))
     logger.info("grant: "+g)
 
     var serialized = Json.toJson[Grant](g)
@@ -21,7 +21,7 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
 
     result should be (g)
 
-    g = grant(Set[Permission](Permission("name1","resource1","action1"), Permission("name2","resource2","action2"))).to(Set("bob", "fred"))
+    g = grant(Permission("name1","resource1","action1")).to(Set("bob", "fred"))
     logger.info("grant: "+g)
 
     serialized = Json.toJson[Grant](g)
