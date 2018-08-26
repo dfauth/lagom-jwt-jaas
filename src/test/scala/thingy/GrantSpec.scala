@@ -65,6 +65,36 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
     value
   }
 
+  "URL-Role based authorisation is the simplest model and " should "work" in {
+
+    val permissionName = "rest-permission"
+    val policyService = new RestPolicyService()
+    policyService.handle(
+      grant permission permissionName on "/api" actions "*" to "admin",
+      grant permission permissionName on "/api/instruments" actions "GET" to "bob",
+      grant permission permissionName on "/api/users" actions "GET" to "bob",
+      grant permission permissionName on "/api/accounts" actions "GET" to "bob",
+      grant permission permissionName on "/api/accounts" actions "-" to "admin"
+    )
+
+    val bob = new SimplePrincipal("bob")
+    val admin = new SimplePrincipal("admin")
+    var result = policyService.permit(("rest-permission", "/api", "GET"), bob)
+    result should be (false)
+    result = policyService.permit(("rest-permission", "/api/users", "GET"), bob)
+    result should be (true)
+//    result = policyService.permit(("rest-permission", "/api/users/fred", "GET"), bob)
+//    result should be (true)
+//    result = policyService.permit(("rest-permission", "/api", "GET"), admin)
+//    result should be (true)
+//    result = policyService.permit(("rest-permission", "/api/instruments", "GET"), admin)
+//    result should be (true)
+//    result = policyService.permit(("rest-permission", "/api/blah", "turd-blossom"), admin)
+//    result should be (true)
+//    result = policyService.permit(("rest-permission", "/api/accounts", "GET"), admin)
+//    result should be (false)
+
+  }
 }
 
 

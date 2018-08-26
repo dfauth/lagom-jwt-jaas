@@ -23,6 +23,12 @@ case class Grant(permission:Permission, principals:Set[String], action:Authoriza
 
 case class Permission(name:String, resource:String, action: String) {
 
+  val actions = Action.apply(action)
+
+  def permitsAction(action: String): Boolean = {
+    actions.matches(action)
+  }
+
 }
 
 object Permission {

@@ -3,6 +3,8 @@ import java.security.Principal
 
 case class HierarchicalPolicyModel(resource:HierarchicalResource = HierarchicalResource.ROOT, var action:String = "*") extends PolicyModel {
 
+  override def permit(resource: String, action: String, p: Principal): Boolean = ???
+
   override def test(p: Principal): Boolean = resource.test(action, p)
 
   def withAction(action: String): PolicyModel = {
