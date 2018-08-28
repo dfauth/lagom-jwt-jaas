@@ -7,7 +7,7 @@ import scala.collection.mutable.ListBuffer
 case class Action(name:String) {
 
   def matches(action: String): Boolean = {
-    name == "*" || name == action
+    name != "-" && (name == "*" || name == action)
   }
 }
 

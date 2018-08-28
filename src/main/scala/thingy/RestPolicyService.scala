@@ -8,12 +8,7 @@ import scala.collection.mutable
 
 class RestPolicyService extends PolicyService with Logging {
 
-  implicit val ordering = new Ordering[String](){
-    override def compare(x: String, y: String): Int = x.compareTo(y)
-  }
-  //orderingToOrdered(ordering)
-
-  val tree = mutable.TreeMap[String, PolicyModel]()(ordering)
+  val tree:mutable.Map[String, PolicyModel] = mutable.Map[String, PolicyModel]()
 
   override def add(grant: Directive) = {
     tree.applyOrElse[String, PolicyModel](grant.permission.resource, r => {
@@ -28,10 +23,7 @@ class RestPolicyService extends PolicyService with Logging {
 
   override def permit(t: (String, String, String), p: Principal): Boolean = {
     val(permission, resource, action) = t
-    findNearestKey[PolicyModel](resource) match {
-      case Some(model) => model.permit(resource, action, p)
-      case _ => false
-    }
+    !findNearestKey[PolicyModel](resource, tree).filter(model => model.permit(resource, action, p)).isEmpty
   }
 
   override def permittedActions(permission: String, resource: String, p: Set[Principal]): Set[String] = ???
@@ -49,15 +41,23 @@ class RestPolicyService extends PolicyService with Logging {
     }
   }
 
-  def findNearestKey[T](k: String): Option[T] = {
+  def descend[T](k: String, map:mutable.Map[String, T]):Seq[T] = {
+    f(k) match {
+      case Some(s1) => findNearestKey(s1, map)
+      case None => Seq.empty[T]
+    }
+  }
+
+  def findNearestKey[T](k: String, map:mutable.Map[String, T]): Seq[T] = {
     if(k == null) {
-      None
+      Seq.empty[T]
     } else {
-      tree.get(k) match {
-        case s:Some[T] => s
-        case None => f(k) match {
-          case Some(s1) => findNearestKey(s1)
-          case None => None
+      map.get(k) match {
+        case Some(s) => {
+          descend(k, map) :+ s
+        }
+        case None => {
+          descend(k, map)
         }
       }
     }

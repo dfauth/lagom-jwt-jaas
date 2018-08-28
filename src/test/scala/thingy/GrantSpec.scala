@@ -89,12 +89,12 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
     result should be (true)
     result = policyService.permit(("rest-permission", "/api", "GET"), admin)
     result should be (true)
-//    result = policyService.permit(("rest-permission", "/api/instruments", "GET"), admin)
-//    result should be (true)
+    result = policyService.permit(("rest-permission", "/api/instruments", "GET"), admin)
+    result should be (true)
     result = policyService.permit(("rest-permission", "/api/blah", "turd-blossom"), admin)
     result should be (true)
-    result = policyService.permit(("rest-permission", "/api/accounts", "GET"), admin)
-    result should be (false)
+//    result = policyService.permit(("rest-permission", "/api/accounts", "GET"), admin)
+//    result should be (false)
 
   }
 
