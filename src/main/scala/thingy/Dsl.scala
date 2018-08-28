@@ -1,11 +1,11 @@
 package thingy
 
 case class GrantBuilder(permission:Permission) extends Toable {
-  override def to(principal:String): Grant = {
+  override def to(principal:String): Directive = {
     to(Set[String](principal))
   }
-  def to(principals:Set[String]): Grant = {
-    Grant(permission, principals)
+  def to(principals:Set[String]): Directive = {
+    Directive(permission, principals)
   }
 }
 
@@ -42,6 +42,6 @@ case class PermissionBuilder(name:String) extends Toable {
 trait Toable {
   def actions(str: String):Toable = ???
 
-  def to(str: String):Grant = ???
+  def to(str: String):Directive = ???
 }
 

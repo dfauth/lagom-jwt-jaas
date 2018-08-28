@@ -16,14 +16,14 @@ class RestPolicyService extends PolicyService with Logging {
 
   val tree = mutable.TreeMap[String, PolicyModel]()(ordering)
 
-  override def add(grant: Grant) = {
+  override def add(grant: Directive) = {
     tree.applyOrElse[String, PolicyModel](grant.permission.resource, r => {
       val model = SimplePolicyModel(grant)
       tree.put(r, model)
       model
     })
   }
-  override def revoke(grant: Grant) = {
+  override def revoke(grant: Directive) = {
     tree.remove(grant.permission.resource)
   }
 
@@ -36,7 +36,7 @@ class RestPolicyService extends PolicyService with Logging {
   override def permittedActions(permission: String, resource: String, p: Set[Principal]): Set[String] = ???
 }
 
-case class SimplePolicyModel(grant:Grant) extends PolicyModel {
+case class SimplePolicyModel(grant:Directive) extends PolicyModel {
   override def permit(resource: String, action: String, p: Principal): Boolean = {
     grant.permission.resource == resource && grant.permission.permitsAction(action) && grant.principals.contains(p.getName)
   }

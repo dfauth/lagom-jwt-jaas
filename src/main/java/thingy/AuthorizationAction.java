@@ -6,13 +6,13 @@ public enum AuthorizationAction {
     GRANT((p,g) -> p.add(g)),
     REVOKE((p,g) -> p.revoke(g));
 
-    private final BiConsumer<PolicyService,Grant> f;
+    private final BiConsumer<PolicyService, Directive> f;
 
-    AuthorizationAction(BiConsumer<PolicyService,Grant> f) {
+    AuthorizationAction(BiConsumer<PolicyService, Directive> f) {
         this.f = f;
     }
 
-    public void apply(PolicyService policyService, Grant grant) {
+    public void apply(PolicyService policyService, Directive grant) {
         this.f.accept(policyService, grant);
     }
 }

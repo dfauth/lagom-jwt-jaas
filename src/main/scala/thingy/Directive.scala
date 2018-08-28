@@ -17,7 +17,7 @@ import thingy.Permission.PermissionFormat
  *
  */
 
-case class Grant(permission:Permission, principals:Set[String], action:AuthorizationAction = AuthorizationAction.GRANT) {
+case class Directive(permission:Permission, principals:Set[String], action:AuthorizationAction = AuthorizationAction.GRANT) {
 
 }
 
@@ -55,20 +55,20 @@ object Permission {
   }
 }
 
-object Grant {
+object Directive {
   import play.api.libs.json._
-  implicit object GrantFormat extends Format[Grant] {
+  implicit object GrantFormat extends Format[Directive] {
 
     // convert from JSON string to a Grant object (de-serializing from JSON)
-    def reads(json: JsValue): JsResult[Grant] = {
+    def reads(json: JsValue): JsResult[Directive] = {
       val permission = (json \ "permission").as[Permission]
       val principals = (json \ "principals").as[Set[String]]
       val action = (json \ "action").as[String]
-      JsSuccess(Grant(permission, principals, AuthorizationAction.valueOf(action)))
+      JsSuccess(Directive(permission, principals, AuthorizationAction.valueOf(action)))
     }
 
     // convert from Grant object to JSON (serializing to JSON)
-    def writes(s: Grant): JsValue = {
+    def writes(s: Directive): JsValue = {
       // JsObject requires Seq[(String, play.api.libs.json.JsValue)]
       val GrantAsList = Seq("principals" -> JsArray(s.principals.map(p => JsString(p)).toIndexedSeq),
         "permission" -> PermissionFormat.writes(s.permission),
