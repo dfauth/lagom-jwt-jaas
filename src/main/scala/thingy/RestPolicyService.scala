@@ -5,7 +5,6 @@ import java.security.Principal
 import org.apache.logging.log4j.scala.Logging
 
 import scala.collection.mutable
-import scala.math.Ordered.orderingToOrdered
 
 class RestPolicyService extends PolicyService with Logging {
 
@@ -29,16 +28,46 @@ class RestPolicyService extends PolicyService with Logging {
 
   override def permit(t: (String, String, String), p: Principal): Boolean = {
     val(permission, resource, action) = t
-//    val x = tree.find((k:String,v:PolicyModel)=>k.compare(resource)<0).getOrElse(null)
-    tree.get(resource).get.permit(resource, action, p)
+    findNearestKey[PolicyModel](resource) match {
+      case Some(model) => model.permit(resource, action, p)
+      case _ => false
+    }
   }
 
   override def permittedActions(permission: String, resource: String, p: Set[Principal]): Set[String] = ???
+
+  def f(k: String): Option[String] = {
+    val split = k.split("/");
+    val buffer = new StringBuilder
+    split.take(split.length-1).filter(!_.isEmpty).foldLeft[StringBuilder](buffer)((buffer, s)=>{
+      buffer ++= "/"
+      buffer ++= s
+    })
+    buffer.toString().isEmpty match {
+      case false => Some(buffer.toString())
+      case true => None
+    }
+  }
+
+  def findNearestKey[T](k: String): Option[T] = {
+    if(k == null) {
+      None
+    } else {
+      tree.get(k) match {
+        case s:Some[T] => s
+        case None => f(k) match {
+          case Some(s1) => findNearestKey(s1)
+          case None => None
+        }
+      }
+    }
+  }
+
 }
 
 case class SimplePolicyModel(grant:Directive) extends PolicyModel {
   override def permit(resource: String, action: String, p: Principal): Boolean = {
-    grant.permission.resource == resource && grant.permission.permitsAction(action) && grant.principals.contains(p.getName)
+    grant.permission.impliesResource(resource) && grant.permission.permitsAction(action) && grant.principals.contains(p.getName)
   }
 
   override def test(p: Principal): Boolean = ???

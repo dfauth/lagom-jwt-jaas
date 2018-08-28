@@ -23,6 +23,11 @@ case class Directive(permission:Permission, principals:Set[String], action:Autho
 
 case class Permission(name:String, resource:String, action: String) {
 
+  def impliesResource(resource: String):Boolean = {
+    resource.startsWith(this.resource)
+  }
+
+
   val actions = Action.apply(action)
 
   def permitsAction(action: String): Boolean = {
