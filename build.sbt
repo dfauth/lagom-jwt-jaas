@@ -12,7 +12,7 @@ val log4j2_api_scala =  "org.apache.logging.log4j" %% "log4j-api-scala" % "11.0"
 val play = "com.typesafe.play" %% "play" % "latest.integration"
 
 lazy val `lagom-jwt-jaas` = (project in file("."))
-  .aggregate(`auth`, `api`, `api-impl`)
+  .aggregate(`auth`, `auth-service`, `test-service`)
 
 lazy val `auth` = (project in file("auth"))
   .settings(
@@ -25,7 +25,13 @@ lazy val `auth` = (project in file("auth"))
     )
   )
 
-lazy val `api` = (project in file("api"))
+lazy val `auth-service` = (project in file("auth-service"))
+  .aggregate(`auth-service-api`, `auth-service-api-impl`)
+
+lazy val `test-service` = (project in file("test-service"))
+  .aggregate(`test-service-api`, `test-service-api-impl`)
+
+lazy val `auth-service-api` = (project in file("auth-service/api"))
   .settings(
     libraryDependencies ++= Seq(
       lagomScaladslApi,
@@ -33,7 +39,28 @@ lazy val `api` = (project in file("api"))
     )
   )
 
-lazy val `api-impl` = (project in file("api-impl"))
+lazy val `auth-service-api-impl` = (project in file("auth-service/api-impl"))
+  .settings(
+    libraryDependencies ++= Seq(
+      scalatest,
+      log4j2_api,
+      log4j2_core,
+      log4j2_api_scala,
+      play,
+      lagomScaladslApi,
+    )
+  )
+  .dependsOn(`auth`)
+
+lazy val `test-service-api` = (project in file("test-service/api"))
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi,
+      play
+    )
+  )
+
+lazy val `test-service-api-impl` = (project in file("test-service/api-impl"))
   .settings(
     libraryDependencies ++= Seq(
       scalatest,
