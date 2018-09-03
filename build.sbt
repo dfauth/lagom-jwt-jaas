@@ -29,6 +29,7 @@ lazy val `api` = (project in file("api"))
   .settings(
     libraryDependencies ++= Seq(
       lagomScaladslApi,
+      play
     )
   )
 
@@ -43,4 +44,5 @@ lazy val `api-impl` = (project in file("api-impl"))
       lagomScaladslApi,
     )
   )
+  .dependsOn(`auth`)
 
