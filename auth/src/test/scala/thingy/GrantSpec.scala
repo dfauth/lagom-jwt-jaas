@@ -135,64 +135,6 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
 
   }
 
-  "key ordering" should "work" in {
-
-    val keys = Set("/api", "/api/instrument", "/api/user", "/api/account", "/api/instrument/blah", "/api/account/1", "/api/account/3")
-
-    val tree = mutable.TreeMap[String, String]()
-    keys.foreach(k => {
-      tree.put(k, k)
-    })
-
-    logger.info("keys: "+tree.keys)
-
-    def f(k: String): Option[String] = {
-      val split = k.split("/");
-      val buffer = new StringBuilder
-      split.take(split.length-1).filter(!_.isEmpty).foldLeft[StringBuilder](buffer)((buffer, s)=>{
-        buffer ++= "/"
-        buffer ++= s
-      })
-      buffer.toString().isEmpty match {
-        case false => Some(buffer.toString())
-        case true => None
-      }
-    }
-
-    def testKey(k: String): Option[String] = {
-      if(k == null) {
-        None
-      } else {
-        tree.get(k) match {
-          case s:Some[String] => s
-          case None => f(k) match {
-            case Some(s1) => testKey(s1)
-            case None => None
-          }
-        }
-      }
-    }
-
-    f("/api/users") should be (Some("/api"))
-    f("/api") should be (None)
-
-    testKey("/api/instrument/blah1").get should be ("/api/instrument")
-    testKey("/api/blah").get should be ("/api")
-    testKey("/api").get should be ("/api")
-    testKey("/api/user").get should be ("/api/user")
-    testKey("/api/account").get should be ("/api/account")
-    testKey("/api/instrument").get should be ("/api/instrument")
-    testKey("/api/instrument/blah").get should be ("/api/instrument/blah")
-    testKey("/api/instrument/blah1").get should be ("/api/instrument")
-    testKey("/api/account/1").get should be ("/api/account/1")
-    testKey("/api/account/2").get should be ("/api/account")
-    testKey("/api/account/3").get should be ("/api/account/3")
-    testKey("/poo") should be (None)
-    testKey("poo") should be (None)
-    testKey("/") should be (None)
-    testKey("") should be (None)
-    testKey(null) should be (None)
-  }
 }
 
 
