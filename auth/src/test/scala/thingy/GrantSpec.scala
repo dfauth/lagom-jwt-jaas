@@ -54,12 +54,16 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
     grant(perm)  to "bob"
 
     g = grant permission "fred" on "A/A1/A2" actions "read,write" to "bob"
-    result = roundTrip(g)
-    result should be (g)
+    val results = roundTrip(g)
+    results should be (List(g))
   }
 
-  def roundTrip(grant: Directive) = {
-    Json.fromJson[Directive](trace(Json.toJson[Directive](grant))).get
+  def roundTrip(grant: Directive):List[Directive] = {
+    roundTrip(List[Directive](grant))
+  }
+
+  def roundTrip(grants: List[Directive]):List[Directive] = {
+    Json.fromJson[List[Directive]](trace(Json.toJson[List[Directive]](grants))).get
   }
 
   def trace[T](value: T): T = {
@@ -72,15 +76,47 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
     val permissionName = "rest-permission"
     val policyService = new RestPolicyService()
     policyService.handle(
-      grant permission permissionName on "/api" actions "*" to "admin",
-      grant permission permissionName on "/api/instruments" actions "GET" to "bob",
-      grant permission permissionName on "/api/users" actions "GET" to "bob",
-      grant permission permissionName on "/api/accounts" actions "GET" to "bob",
-      grant permission permissionName on "/api/accounts" actions "-" to "admin"
+      grant permission permissionName on "/api" actions "*" to "role:admin",
+      grant permission permissionName on "/api/instruments" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/users" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/accounts" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/accounts" actions "-" to "role:admin"
     )
 
-    val bob = new SimplePrincipal("bob")
-    val admin = new SimplePrincipal("admin")
+    val bob = new UserPrincipal("bob")
+    val admin = new RolePrincipal("admin")
+    var result = policyService.permit(("rest-permission", "/api", "GET"), bob)
+    result should be (false)
+    result = policyService.permit(("rest-permission", "/api/users", "GET"), bob)
+    result should be (true)
+    result = policyService.permit(("rest-permission", "/api/users/fred", "GET"), bob)
+    result should be (true)
+    result = policyService.permit(("rest-permission", "/api", "GET"), admin)
+    result should be (true)
+    result = policyService.permit(("rest-permission", "/api/instruments", "GET"), admin)
+    result should be (true)
+    result = policyService.permit(("rest-permission", "/api/blah", "turd-blossom"), admin)
+    result should be (true)
+//    result = policyService.permit(("rest-permission", "/api/accounts", "GET"), admin)
+//    result should be (false)
+
+  }
+
+  "serialize grants " should "work" in {
+
+    val permissionName = "rest-permission"
+    val grants = List(
+      grant permission permissionName on "/api" actions "*" to "role:admin",
+      grant permission permissionName on "/api/instruments" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/users" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/accounts" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/accounts" actions "-" to "role:admin"
+    )
+
+    val policyService = new RestPolicyService()
+    policyService.handle(roundTrip(grants))
+    val bob = new UserPrincipal("bob")
+    val admin = new RolePrincipal("admin")
     var result = policyService.permit(("rest-permission", "/api", "GET"), bob)
     result should be (false)
     result = policyService.permit(("rest-permission", "/api/users", "GET"), bob)

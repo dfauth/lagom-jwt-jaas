@@ -32,7 +32,7 @@ class SampleLoginModule extends LoginModule {
   }
 
   override def commit(): Boolean = {
-    principals.map((p: String) => SimplePrincipal(p)).foreach(p => subject.getPrincipals.add(p))
+    principals.map((p: String) => UserPrincipal(p)).foreach(p => subject.getPrincipals.add(p))
     true
   }
 

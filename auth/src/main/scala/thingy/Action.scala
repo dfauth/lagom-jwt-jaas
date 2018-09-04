@@ -38,7 +38,7 @@ case class ActionCollection(actions:scala.collection.mutable.Set[Action] = scala
 
 
   def byPrincipal(principal:String*):ActionCollection = {
-    principal.map(p => SimplePrincipal(p)).foreach(p => principals += p)
+    principal.map(p => UserPrincipal(p)).foreach(p => principals += p)
     this
   }
 

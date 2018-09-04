@@ -106,7 +106,7 @@ class TestSpec extends FlatSpec with Matchers with Logging {
 
   def successFor(roles: String*):Success[Subject] = {
     val subject = new Subject()
-    Success(roles.map(SimplePrincipal(_)).foldLeft[Subject](subject:Subject)((s, p) => {
+    Success(roles.map(UserPrincipal(_)).foldLeft[Subject](subject:Subject)((s, p) => {
       s.getPrincipals().add(p)
       s
     }))

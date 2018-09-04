@@ -8,6 +8,10 @@ trait PolicyService {
     grants.foreach(g => g.action.apply(PolicyService.this, g))
   }
 
+  def handle(grants: List[Directive]): Any = {
+    grants.foreach(g => g.action.apply(PolicyService.this, g))
+  }
+
 
   def add(grant: Directive)
   def revoke(grant: Directive)
