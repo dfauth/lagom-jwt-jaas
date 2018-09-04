@@ -5,11 +5,15 @@ import java.security.Principal
 trait PolicyService {
 
   def handle(grants: Directive*): Any = {
-    grants.foreach(g => g.action.apply(PolicyService.this, g))
+    grants.foreach(handle(_))
   }
 
   def handle(grants: List[Directive]): Any = {
-    grants.foreach(g => g.action.apply(PolicyService.this, g))
+    grants.foreach(handle(_))
+  }
+
+  def handle(grant: Directive): Unit = {
+    grant.action(PolicyService.this, grant)
   }
 
 
@@ -17,4 +21,12 @@ trait PolicyService {
   def revoke(grant: Directive)
   def permit(t:(String, String, String), p: Principal): Boolean
   def permittedActions(permission:String, resource:String, p: Set[Principal]): Set[String]
+
 }
+
+object PolicyService {
+  trait Factory {
+    def create():PolicyService
+  }
+}
+

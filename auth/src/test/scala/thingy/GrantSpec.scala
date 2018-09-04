@@ -74,7 +74,7 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
   "URL-Role based authorisation is the simplest model and " should "work" in {
 
     val permissionName = "rest-permission"
-    val policyService = new RestPolicyService()
+    val policyService = new BasePolicyService()
     policyService.handle(
       grant permission permissionName on "/api" actions "*" to "role:admin",
       grant permission permissionName on "/api/instruments" actions "GET" to "user:bob",
@@ -106,6 +106,7 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
 
     val permissionName = "rest-permission"
     val grants = List(
+      grant permission "something-else" on "/api" actions "*" to "role:admin",
       grant permission permissionName on "/api" actions "*" to "role:admin",
       grant permission permissionName on "/api/instruments" actions "GET" to "user:bob",
       grant permission permissionName on "/api/users" actions "GET" to "user:bob",
@@ -113,7 +114,7 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
       grant permission permissionName on "/api/accounts" actions "-" to "role:admin"
     )
 
-    val policyService = new RestPolicyService()
+    val policyService = new BasePolicyService()
     policyService.handle(roundTrip(grants))
     val bob = new UserPrincipal("bob")
     val admin = new RolePrincipal("admin")

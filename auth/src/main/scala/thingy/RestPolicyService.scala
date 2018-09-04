@@ -65,6 +65,12 @@ class RestPolicyService extends PolicyService with Logging {
 
 }
 
+object RestPolicyService {
+  class Factory extends PolicyService.Factory {
+    override def create(): PolicyService = new RestPolicyService()
+  }
+}
+
 case class SimplePolicyModel(grant:Directive) extends PolicyModel {
   override def permit(resource: String, action: String, p: Principal): Boolean = {
     grant.permission.impliesResource(resource) && grant.permission.permitsAction(action) && grant.principals.contains(p.getName)
