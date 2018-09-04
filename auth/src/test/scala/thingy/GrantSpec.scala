@@ -1,10 +1,15 @@
 package thingy
 
+import java.security._
+
+import javax.security.auth.Subject
 import org.apache.logging.log4j.scala.Logging
 import org.scalatest._
 import play.api.libs.json.Json
+import thingy.permissions.RestPermission
 
 import scala.collection.mutable
+import scala.util.{Failure, Success, Try}
 
 class GrantSpec extends FlatSpec with Matchers with Logging {
 
@@ -135,6 +140,55 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
 
   }
 
+  "try with " should "permissions" in {
+
+    val permissionName = "rest-permission"
+    val grants = List(
+      grant permission "something-else" on "/api" actions "*" to "role:admin",
+      grant permission permissionName on "/api" actions "*" to "role:admin",
+      grant permission permissionName on "/api/instruments" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/users" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/accounts" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/accounts" actions "-" to "role:admin"
+    )
+
+    val policyService = new BasePolicyService()
+    policyService.handle(roundTrip(grants))
+
+    val bob = new UserPrincipal("bob")
+    val admin = new RolePrincipal("admin")
+
+//    val subject = new Subject(true, Set[Principal](bob,admin), Set.empty, Set.empty)
+    val subject = new Subject()
+    subject.getPrincipals().add(bob)
+    subject.getPrincipals().add(admin)
+
+    val permission = new RestPermission("/api", "GET")
+
+    // testIt(permission, subject) should be (Success(true)) // TODO currently failing
+
+  }
+
+  def testIt(permission:java.security.Permission, subject:Subject):Try[Boolean] = {
+
+    Subject.doAsPrivileged[Try[Boolean]](subject, new PrivilegedAction[Try[Boolean]] {
+      override def run(): Try[Boolean] = {
+        try {
+          AccessController.checkPermission(permission)
+          Success(true)
+        } catch {
+          case e: AccessControlException => {
+            logger.error(e.getMessage(), e)
+            Success(false)
+          }
+          case t:Throwable => {
+            logger.error(t.getMessage(), t)
+            Failure(t)
+          }
+        }
+      }
+    }, new AccessControlContext(Array[java.security.ProtectionDomain]()))
+  }
 }
 
 
