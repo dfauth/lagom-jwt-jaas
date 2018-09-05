@@ -11,4 +11,8 @@ public class BasePermission extends BasicPermission {
         super(name, actions);
         this.resource = resource;
     }
+
+    public String getResource() {
+        return resource;
+    }
 }

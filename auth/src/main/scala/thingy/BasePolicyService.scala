@@ -24,7 +24,10 @@ class BasePolicyService(factories:Map[String, PolicyService.Factory] = Map.empty
   val nested:mutable.Map[String, PolicyService] = mutable.Map[String, PolicyService]()
 
   override def add(grant: Directive) = {
-    permit(grant.permission.name, s => nested.put(grant.permission.name, s), create)
+    permit(grant.permission.name, s => {
+      nested.put(grant.permission.name, s)
+      s.add(grant)
+    }, create)
   }
 
   override def revoke(grant: Directive) = {

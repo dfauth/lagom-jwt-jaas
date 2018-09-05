@@ -31,7 +31,10 @@ class RestPolicyService extends PolicyService with Logging {
   override def permittedActions(permission: String, resource: String, p: Set[Principal]): Set[String] = ???
 
   override def permit(q: BasePermission, p: Principal): Boolean = {
-    false // TODO
+    val permission = q.getName
+    val resource = q.getResource()
+    val action = q.getActions()
+    permit((permission, resource, action), p)
   }
 }
 
