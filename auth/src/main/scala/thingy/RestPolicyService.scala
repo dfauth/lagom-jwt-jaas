@@ -34,7 +34,7 @@ class RestPolicyService extends PolicyService with Logging {
     val permission = q.getName
     val resource = q.getResource()
     val action = q.getActions()
-    permit((permission, resource, action), p)
+    permit((permission, resource, action), p) && q.accept()
   }
 }
 

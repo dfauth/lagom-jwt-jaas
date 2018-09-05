@@ -6,7 +6,7 @@ import javax.security.auth.Subject
 import org.apache.logging.log4j.scala.Logging
 import org.scalatest._
 import play.api.libs.json.Json
-import thingy.permissions.RestPermission
+import thingy.permissions.{BasePermission, RestPermission}
 
 import scala.collection.mutable
 import scala.util.{Failure, Success, Try}
@@ -239,6 +239,84 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
     testIt(permission, subject) should be (Success(false))
 
     permission = new RestPermission("/api/users/123", "POST")
+    testIt(permission, subject) should be (Success(false))
+
+  }
+
+  "custom permission logic " should "also be possible" in {
+
+    val permissionName = "custom-permission"
+
+    case class Credit(value:Int)
+    class CustomPermission(resource:String, actions:String, credit:Credit=Credit(0)) extends BasePermission("custom-permission", resource:String, actions:String) {
+      override def accept():Boolean = {
+        credit.value > 0
+      }
+
+      override def toString: String = {
+        "CustomPermission("+resource+", "+actions+")"
+      }
+    }
+
+    val grants = List(
+      grant permission permissionName on "/api" actions "*" to "role:admin",
+      grant permission permissionName on "/api/instruments" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/users" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/accounts" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/accounts" actions "-" to "role:admin"
+    )
+
+    val policyService = new BasePolicyService()
+    policyService.handle(roundTrip(grants))
+
+    val bob = new UserPrincipal("bob")
+    val admin = new RolePrincipal("admin")
+
+    val subject = new Subject()
+    subject.getPrincipals().add(bob)
+
+    var permission = new CustomPermission("/api", "GET")
+    testIt(permission, subject) should be (Success(false))
+
+    permission = new CustomPermission("/api/instruments", "GET")
+    testIt(permission, subject) should be (Success(false)) // zero credit
+
+    permission = new CustomPermission("/api/instruments/123", "GET")
+    testIt(permission, subject) should be (Success(false)) // zero credit
+
+    permission = new CustomPermission("/api/users", "GET")
+    testIt(permission, subject) should be (Success(false)) // zero credit
+
+    permission = new CustomPermission("/api/users/123", "GET")
+    testIt(permission, subject) should be (Success(false)) // zero credit
+
+    permission = new CustomPermission("/api/users", "POST")
+    testIt(permission, subject) should be (Success(false)) // zero credit
+
+    permission = new CustomPermission("/api/users/123", "POST")
+    testIt(permission, subject) should be (Success(false)) // zero credit
+
+    // repeat with non-zero credit
+    val credit = Credit(1)
+    permission = new CustomPermission("/api", "GET")
+    testIt(permission, subject) should be (Success(false)) ///anyway
+
+    permission = new CustomPermission("/api/instruments", "GET", credit)
+    testIt(permission, subject) should be (Success(true)) // zero credit
+
+    permission = new CustomPermission("/api/instruments/123", "GET", credit)
+    testIt(permission, subject) should be (Success(true)) // zero credit
+
+    permission = new CustomPermission("/api/users", "GET", credit)
+    testIt(permission, subject) should be (Success(true)) // zero credit
+
+    permission = new CustomPermission("/api/users/123", "GET", credit)
+    testIt(permission, subject) should be (Success(true)) // zero credit
+
+    permission = new CustomPermission("/api/users", "POST", credit)
+    testIt(permission, subject) should be (Success(false))
+
+    permission = new CustomPermission("/api/users/123", "POST", credit)
     testIt(permission, subject) should be (Success(false))
 
   }
