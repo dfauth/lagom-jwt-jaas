@@ -161,11 +161,85 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
 //    val subject = new Subject(true, Set[Principal](bob,admin), Set.empty, Set.empty)
     val subject = new Subject()
     subject.getPrincipals().add(bob)
+
+    var permission = new RestPermission("/api", "GET")
+    testIt(permission, subject) should be (Success(false))
+
+    permission = new RestPermission("/api/instruments", "GET")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/instruments/123", "GET")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/users", "GET")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/users/123", "GET")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/users", "POST")
+    testIt(permission, subject) should be (Success(false))
+
+    permission = new RestPermission("/api/users/123", "POST")
+    testIt(permission, subject) should be (Success(false))
+
+    // add admin role
     subject.getPrincipals().add(admin)
+    permission = new RestPermission("/api", "GET")
+    testIt(permission, subject) should be (Success(true))
 
-    val permission = new RestPermission("/api", "GET")
+    permission = new RestPermission("/api/users", "POST")
+    testIt(permission, subject) should be (Success(true))
 
-    testIt(permission, subject) should be (Success(true)) // TODO currently failing
+    permission = new RestPermission("/api/users/123", "POST")
+    testIt(permission, subject) should be (Success(true))
+
+    // revoke bobs access to /api/instruments
+    policyService.handle(
+      revoke permission permissionName on "/api/instruments" actions "GET" from "user:bob"
+    )
+
+    // he can still access as admin
+    permission = new RestPermission("/api/instruments", "GET")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/instruments/123", "GET")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/users", "GET")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/users/123", "GET")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/users", "POST")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/users/123", "POST")
+    testIt(permission, subject) should be (Success(true))
+
+    // now remove admin role
+    subject.getPrincipals().remove(admin)
+
+    // and he should no longer have access
+    permission = new RestPermission("/api/instruments", "GET")
+    testIt(permission, subject) should be (Success(false))
+
+    permission = new RestPermission("/api/instruments/123", "GET")
+    testIt(permission, subject) should be (Success(false))
+
+    // the others remain true
+    permission = new RestPermission("/api/users", "GET")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/users/123", "GET")
+    testIt(permission, subject) should be (Success(true))
+
+    permission = new RestPermission("/api/users", "POST")
+    testIt(permission, subject) should be (Success(false))
+
+    permission = new RestPermission("/api/users/123", "POST")
+    testIt(permission, subject) should be (Success(false))
 
   }
 
@@ -191,4 +265,6 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
   }
 }
 
-
+object WOOZ {
+  var stop = false;
+}
