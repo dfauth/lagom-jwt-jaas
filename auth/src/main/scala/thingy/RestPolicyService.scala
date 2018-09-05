@@ -6,6 +6,7 @@ import org.apache.logging.log4j.scala.Logging
 
 import scala.collection.mutable
 import thingy.KeyUtils.findNearestKey
+import thingy.permissions.BasePermission
 
 class RestPolicyService extends PolicyService with Logging {
 
@@ -29,6 +30,9 @@ class RestPolicyService extends PolicyService with Logging {
 
   override def permittedActions(permission: String, resource: String, p: Set[Principal]): Set[String] = ???
 
+  override def permit(q: BasePermission, p: Principal): Boolean = {
+    false // TODO
+  }
 }
 
 object RestPolicyService {

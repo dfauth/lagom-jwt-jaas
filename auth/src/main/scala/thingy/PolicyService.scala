@@ -2,7 +2,12 @@ package thingy
 
 import java.security.Principal
 
+import thingy.permissions.BasePermission
+
 trait PolicyService {
+
+  def permit(permission: BasePermission, principal: Principal): Boolean
+
 
   def handle(grants: Directive*): Any = {
     grants.foreach(handle(_))

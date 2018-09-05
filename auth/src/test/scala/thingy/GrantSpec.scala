@@ -165,7 +165,7 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
 
     val permission = new RestPermission("/api", "GET")
 
-    // testIt(permission, subject) should be (Success(true)) // TODO currently failing
+//    testIt(permission, subject) should be (Success(true)) // TODO currently failing
 
   }
 
