@@ -8,7 +8,7 @@ import org.scalatest._
 import play.api.libs.json.Json
 import thingy.permissions.{BasePermission, RestPermission}
 
-import scala.collection.mutable
+import thingy.permissions.authorize
 import scala.util.{Failure, Success, Try}
 
 class GrantSpec extends FlatSpec with Matchers with Logging {
@@ -163,36 +163,36 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
     subject.getPrincipals().add(bob)
 
     var permission = new RestPermission("/api", "GET")
-    testIt(permission, subject) should be (Success(false))
+    authorize(permission, subject) should be (Success(false))
 
     permission = new RestPermission("/api/instruments", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/instruments/123", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users/123", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users", "POST")
-    testIt(permission, subject) should be (Success(false))
+    authorize(permission, subject) should be (Success(false))
 
     permission = new RestPermission("/api/users/123", "POST")
-    testIt(permission, subject) should be (Success(false))
+    authorize(permission, subject) should be (Success(false))
 
     // add admin role
     subject.getPrincipals().add(admin)
     permission = new RestPermission("/api", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users", "POST")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users/123", "POST")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     // revoke bobs access to /api/instruments
     policyService.handle(
@@ -201,45 +201,45 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
 
     // he can still access as admin
     permission = new RestPermission("/api/instruments", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/instruments/123", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users/123", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users", "POST")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users/123", "POST")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     // now remove admin role
     subject.getPrincipals().remove(admin)
 
     // and he should no longer have access
     permission = new RestPermission("/api/instruments", "GET")
-    testIt(permission, subject) should be (Success(false))
+    authorize(permission, subject) should be (Success(false))
 
     permission = new RestPermission("/api/instruments/123", "GET")
-    testIt(permission, subject) should be (Success(false))
+    authorize(permission, subject) should be (Success(false))
 
     // the others remain true
     permission = new RestPermission("/api/users", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users/123", "GET")
-    testIt(permission, subject) should be (Success(true))
+    authorize(permission, subject) should be (Success(true))
 
     permission = new RestPermission("/api/users", "POST")
-    testIt(permission, subject) should be (Success(false))
+    authorize(permission, subject) should be (Success(false))
 
     permission = new RestPermission("/api/users/123", "POST")
-    testIt(permission, subject) should be (Success(false))
+    authorize(permission, subject) should be (Success(false))
 
   }
 
@@ -276,73 +276,81 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
     subject.getPrincipals().add(bob)
 
     var permission = new CustomPermission("/api", "GET")
-    testIt(permission, subject) should be (Success(false))
+    authorize(permission, subject) should be (Success(false))
 
     permission = new CustomPermission("/api/instruments", "GET")
-    testIt(permission, subject) should be (Success(false)) // zero credit
+    authorize(permission, subject) should be (Success(false)) // zero credit
 
     permission = new CustomPermission("/api/instruments/123", "GET")
-    testIt(permission, subject) should be (Success(false)) // zero credit
+    authorize(permission, subject) should be (Success(false)) // zero credit
 
     permission = new CustomPermission("/api/users", "GET")
-    testIt(permission, subject) should be (Success(false)) // zero credit
+    authorize(permission, subject) should be (Success(false)) // zero credit
 
     permission = new CustomPermission("/api/users/123", "GET")
-    testIt(permission, subject) should be (Success(false)) // zero credit
+    authorize(permission, subject) should be (Success(false)) // zero credit
 
     permission = new CustomPermission("/api/users", "POST")
-    testIt(permission, subject) should be (Success(false)) // zero credit
+    authorize(permission, subject) should be (Success(false)) // zero credit
 
     permission = new CustomPermission("/api/users/123", "POST")
-    testIt(permission, subject) should be (Success(false)) // zero credit
+    authorize(permission, subject) should be (Success(false)) // zero credit
 
     // repeat with non-zero credit
     val credit = Credit(1)
     permission = new CustomPermission("/api", "GET")
-    testIt(permission, subject) should be (Success(false)) ///anyway
+    authorize(permission, subject) should be (Success(false)) ///anyway
 
     permission = new CustomPermission("/api/instruments", "GET", credit)
-    testIt(permission, subject) should be (Success(true)) // zero credit
+    authorize(permission, subject) should be (Success(true)) // zero credit
 
     permission = new CustomPermission("/api/instruments/123", "GET", credit)
-    testIt(permission, subject) should be (Success(true)) // zero credit
+    authorize(permission, subject) should be (Success(true)) // zero credit
 
     permission = new CustomPermission("/api/users", "GET", credit)
-    testIt(permission, subject) should be (Success(true)) // zero credit
+    authorize(permission, subject) should be (Success(true)) // zero credit
 
     permission = new CustomPermission("/api/users/123", "GET", credit)
-    testIt(permission, subject) should be (Success(true)) // zero credit
+    authorize(permission, subject) should be (Success(true)) // zero credit
 
     permission = new CustomPermission("/api/users", "POST", credit)
-    testIt(permission, subject) should be (Success(false))
+    authorize(permission, subject) should be (Success(false))
 
     permission = new CustomPermission("/api/users/123", "POST", credit)
-    testIt(permission, subject) should be (Success(false))
+    authorize(permission, subject) should be (Success(false))
 
   }
 
-  def testIt(permission:java.security.Permission, subject:Subject):Try[Boolean] = {
+  "subject " should "be propagated" in {
 
-    Subject.doAsPrivileged[Try[Boolean]](subject, new PrivilegedAction[Try[Boolean]] {
-      override def run(): Try[Boolean] = {
-        try {
-          AccessController.checkPermission(permission)
-          Success(true)
-        } catch {
-          case e: AccessControlException => {
-            logger.error(e.getMessage(), e)
-            Success(false)
-          }
-          case t:Throwable => {
-            logger.error(t.getMessage(), t)
-            Failure(t)
-          }
-        }
-      }
-    }, new AccessControlContext(Array[java.security.ProtectionDomain]()))
+    val permissionName = "rest-permission"
+
+    val grants = List(
+      grant permission permissionName on "/api" actions "*" to "role:admin",
+      grant permission permissionName on "/api/instruments" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/users" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/accounts" actions "GET" to "user:bob",
+      grant permission permissionName on "/api/accounts" actions "-" to "role:admin"
+    )
+
+    val policyService = new BasePolicyService()
+    policyService.handle(roundTrip(grants))
+
+    val bob = new UserPrincipal("bob")
+    val admin = new RolePrincipal("admin")
+
+    val subject = new Subject()
+    subject.getPrincipals().add(bob)
+    subject.getPrincipals().add(admin)
+
+    var permission = new RestPermission("/api", "GET")
+    authorize(permission, subject, f) should be (Success(true))
+
   }
-}
 
-object WOOZ {
-  var stop = false;
+  def f() = {
+    var permission = new RestPermission("/api", "GET")
+    authorize(permission) should be (Success(true))
+  }
+
 }
