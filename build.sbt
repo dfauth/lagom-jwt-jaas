@@ -56,8 +56,10 @@ lazy val `auth-service-api-impl` = (project in file("auth-service/api-impl"))
       log4j2_api_scala,
       play,
       lagomScaladslApi,
+      lagomScaladslPersistence,
     )
   )
+  .dependsOn(`auth-service-api`)
   .dependsOn(`auth`)
 
 lazy val `test-service-api` = (project in file("test-service/api"))
@@ -77,7 +79,9 @@ lazy val `test-service-api-impl` = (project in file("test-service/api-impl"))
       log4j2_api_scala,
       play,
       lagomScaladslApi,
+      lagomScaladslPersistence,
     )
   )
+  .dependsOn(`test-service-api`)
   .dependsOn(`auth`)
 
