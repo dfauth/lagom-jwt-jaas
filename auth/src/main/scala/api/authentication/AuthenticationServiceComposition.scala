@@ -1,5 +1,6 @@
 package api.authentication
 
+import api.exception.NotAuthenticated
 import com.lightbend.lagom.scaladsl.api.transport.{Forbidden, RequestHeader}
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import com.typesafe.config.ConfigFactory
@@ -19,7 +20,7 @@ object AuthenticationServiceComposition {
 
       tokenContent match {
         case Some(tokenContent) => serviceCall(tokenContent, authToken.getOrElse(""))
-        case _ => throw Forbidden("Authorization token is invalid")
+        case _ => throw NotAuthenticated("Not authenticated")
       }
     }
 
