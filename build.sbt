@@ -15,7 +15,7 @@ val accord = "com.wix" %% "accord-core" % "0.6.1"
 val jwt = "com.pauldijou" %% "jwt-play-json" % "0.12.1"
 
 lazy val `lagom-jwt-jaas` = (project in file("."))
-  .aggregate(`auth`, `auth-service`, `test-service`)
+  .aggregate(`auth`, `auth-service`, `session-service`, `user-service`)
 
 lazy val `auth` = (project in file("auth"))
   .settings(
@@ -35,8 +35,11 @@ lazy val `auth` = (project in file("auth"))
 lazy val `auth-service` = (project in file("auth-service"))
   .aggregate(`auth-service-api`, `auth-service-api-impl`)
 
-lazy val `test-service` = (project in file("test-service"))
-  .aggregate(`test-service-api`, `test-service-api-impl`)
+lazy val `session-service` = (project in file("session-service"))
+  .aggregate(`session-service-api`, `session-service-api-impl`)
+
+lazy val `user-service` = (project in file("user-service"))
+  .aggregate(`user-service-api`, `user-service-api-impl`)
 
 lazy val `auth-service-api` = (project in file("auth-service/api"))
   .settings(
@@ -62,7 +65,7 @@ lazy val `auth-service-api-impl` = (project in file("auth-service/api-impl"))
   .dependsOn(`auth-service-api`)
   .dependsOn(`auth`)
 
-lazy val `test-service-api` = (project in file("test-service/api"))
+lazy val `session-service-api` = (project in file("session-service/api"))
   .settings(
     libraryDependencies ++= Seq(
       lagomScaladslApi,
@@ -70,7 +73,7 @@ lazy val `test-service-api` = (project in file("test-service/api"))
     )
   )
 
-lazy val `test-service-api-impl` = (project in file("test-service/api-impl"))
+lazy val `session-service-api-impl` = (project in file("session-service/api-impl"))
   .settings(
     libraryDependencies ++= Seq(
       scalatest,
@@ -82,6 +85,30 @@ lazy val `test-service-api-impl` = (project in file("test-service/api-impl"))
       lagomScaladslPersistence,
     )
   )
-  .dependsOn(`test-service-api`)
+  .dependsOn(`session-service-api`)
+  .dependsOn(`auth`)
+
+lazy val `user-service-api` = (project in file("user-service/api"))
+  .settings(
+    libraryDependencies ++= Seq(
+      lagomScaladslApi,
+      play
+    )
+  )
+  .dependsOn(`auth`)
+
+lazy val `user-service-api-impl` = (project in file("user-service/api-impl"))
+  .settings(
+    libraryDependencies ++= Seq(
+      scalatest,
+      log4j2_api,
+      log4j2_core,
+      log4j2_api_scala,
+      play,
+      lagomScaladslApi,
+      lagomScaladslPersistence,
+    )
+  )
+  .dependsOn(`user-service-api`)
   .dependsOn(`auth`)
 

@@ -6,9 +6,9 @@ import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 
 import scala.concurrent.ExecutionContext
 
-class IdentityServiceImpl(
+class SessionServiceImpl(
                            persistentRegistry: PersistentEntityRegistry
-                         )(implicit ec: ExecutionContext) extends IdentityService
+                         )(implicit ec: ExecutionContext) extends SessionService
 {
   override def getIdentityState() = authenticated { (tokenContent, _) =>
     ServerServiceCall { _ =>

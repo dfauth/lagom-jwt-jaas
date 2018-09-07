@@ -1,16 +1,11 @@
 package api
 
 import akka.NotUsed
-import api.authentication.TokenContent
-import api.request.{ClientRegistration, UserCreation, UserLogin}
-import api.response.{GeneratedIdDone, TokenRefreshDone, UserLoginDone}
-import api.validation.ValidationUtil.validate
+import api.request.UserLogin
+import api.response.{TokenRefreshDone, UserLoginDone}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
-import com.lightbend.lagom.scaladsl.api.transport.Forbidden
 
-class IdentityServiceImpl extends IdentityService {
-
-  override def registerClient(): ServiceCall[ClientRegistration, GeneratedIdDone] = ???
+class AuthServiceImpl extends AuthService {
 
   override def loginUser(): ServiceCall[UserLogin, UserLoginDone] = ???
 
@@ -40,5 +35,4 @@ class IdentityServiceImpl extends IdentityService {
 
   override def refreshToken(): ServiceCall[NotUsed, TokenRefreshDone] = ???
 
-  override def createUser(): ServiceCall[UserCreation, GeneratedIdDone] = ???
 }

@@ -5,14 +5,14 @@ import api.response.IdentityStateDone
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Service, ServiceCall}
 
-trait IdentityService extends Service {
+trait SessionService extends Service {
   def getIdentityState(): ServiceCall[NotUsed, IdentityStateDone]
 
   override final def descriptor = {
     import Service._
 
-    named("identity-service").withCalls(
-      restCall(Method.GET, "/api/state/identity", getIdentityState _)
+    named("session-service").withCalls(
+      restCall(Method.GET, "/api/session/identity", getIdentityState _)
     ).withAutoAcl(true)
 
   }
