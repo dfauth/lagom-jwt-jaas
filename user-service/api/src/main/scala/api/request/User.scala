@@ -5,18 +5,18 @@ import com.wix.accord.dsl._
 import api.regex.Matchers
 import api.validation.ValidationViolationKeys._
 
-case class UserCreation(
+case class User(
   firstName: String,
   lastName: String,
   email: String,
   username: String,
   password: String
-) extends WithUserCreationFields
+) extends WithUserFields
 
-object UserCreation {
-  implicit val format: Format[UserCreation] = Json.format
+object User {
+  implicit val format: Format[User] = Json.format
 
-  implicit val userCreationValidator = validator[UserCreation] { u =>
+  implicit val userValidator = validator[User] { u =>
     u.firstName as notEmptyKey("firstName") is notEmpty
     u.lastName as notEmptyKey("lastName") is notEmpty
     u.email as matchRegexFullyKey("email") should matchRegexFully(Matchers.Email)

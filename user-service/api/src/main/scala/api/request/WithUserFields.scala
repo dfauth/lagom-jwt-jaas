@@ -1,6 +1,6 @@
 package api.request
 
-trait WithUserCreationFields {
+trait WithUserFields {
   val firstName: String
   val lastName: String
   val email: String

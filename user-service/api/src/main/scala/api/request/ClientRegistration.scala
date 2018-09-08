@@ -12,7 +12,7 @@ case class ClientRegistration(
   email: String,
   username: String,
   password: String
-) extends WithUserCreationFields
+) extends WithUserFields
 
 object ClientRegistration {
   implicit val format: Format[ClientRegistration] = Json.format
