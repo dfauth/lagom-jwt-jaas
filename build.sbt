@@ -4,6 +4,8 @@ version := "0.1"
 
 scalaVersion := "2.12.6"
 
+lagomCassandraEnabled in ThisBuild := false
+
 val scalatest = "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 val log4j2_api = "org.apache.logging.log4j" % "log4j-api" % "2.11.0"
 val log4j2_core = "org.apache.logging.log4j" % "log4j-core" % "2.11.0"
@@ -52,6 +54,7 @@ lazy val `auth-service-api` = (project in file("auth-service/api"))
   .dependsOn(`auth`)
 
 lazy val `auth-service-api-impl` = (project in file("auth-service/api-impl"))
+  .enablePlugins(LagomScala)
   .settings(
     libraryDependencies ++= Seq(
       scalatest,
@@ -75,6 +78,7 @@ lazy val `session-service-api` = (project in file("session-service/api"))
   )
 
 lazy val `session-service-api-impl` = (project in file("session-service/api-impl"))
+  .enablePlugins(LagomScala)
   .settings(
     libraryDependencies ++= Seq(
       scalatest,
@@ -99,6 +103,7 @@ lazy val `user-service-api` = (project in file("user-service/api"))
   .dependsOn(`auth`)
 
 lazy val `user-service-api-impl` = (project in file("user-service/api-impl"))
+  .enablePlugins(LagomScala)
   .settings(
     libraryDependencies ++= Seq(
       scalatest,
@@ -111,6 +116,7 @@ lazy val `user-service-api-impl` = (project in file("user-service/api-impl"))
       lagomScaladslDevMode,
       h2,
       macwire,
+      lagomScaladslPubSub,
     )
   )
   .dependsOn(`user-service-api`)

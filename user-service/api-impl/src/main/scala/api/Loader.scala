@@ -5,8 +5,10 @@ import com.lightbend.lagom.scaladsl.api.ServiceLocator
 import com.lightbend.lagom.scaladsl.api.ServiceLocator.NoServiceLocator
 import com.lightbend.lagom.scaladsl.devmode.LagomDevModeComponents
 import com.lightbend.lagom.scaladsl.persistence.jdbc.JdbcPersistenceComponents
+import com.lightbend.lagom.scaladsl.persistence.slick.SlickPersistenceComponents
 import com.lightbend.lagom.scaladsl.server._
 import com.softwaremill.macwire._
+import play.api.db.HikariCPComponents
 import play.api.libs.ws.ahc.AhcWSComponents
 
 class Loader extends LagomApplicationLoader {
@@ -27,6 +29,8 @@ class Loader extends LagomApplicationLoader {
 abstract class Application(context: LagomApplicationContext)
   extends LagomApplication(context)
     with JdbcPersistenceComponents
+    with SlickPersistenceComponents
+    with HikariCPComponents
     with AhcWSComponents
 {
 

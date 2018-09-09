@@ -3,11 +3,11 @@ package api
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 
 class UserEntity extends PersistentEntity {
-  override type Command = this.type
-  override type Event = this.type
-  override type State = this.type
+  override type Command = UserCommand
+  override type Event = UserEvent
+  override type State = UserState
 
-  override def initialState: UserEntity.this.type = ???
+  override def initialState: UserState = ???
 
   override def behavior: Behavior = ???
 }

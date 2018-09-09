@@ -1,9 +1,10 @@
-package api.request
+package api.response
 
-import play.api.libs.json.{Format, Json}
-import com.wix.accord.dsl._
 import api.regex.Matchers
+import api.request.WithUserFields
 import api.validation.ValidationViolationKeys._
+import com.wix.accord.dsl._
+import play.api.libs.json.{Format, Json}
 
 case class User(
   firstName: String,

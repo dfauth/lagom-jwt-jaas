@@ -1,9 +1,15 @@
 package api
 
+import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, ReadSideProcessor}
 
-class UserEventProcessor extends ReadSideProcessor {
-  override def buildHandler(): ReadSideProcessor.ReadSideHandler[Nothing] = ???
+class UserEventProcessor(
+                          readSide: SlickReadSide,
+                          userRepo: UserRepository
 
-  override def aggregateTags: Set[AggregateEventTag[Nothing]] = ???
+                        ) extends ReadSideProcessor[UserEvent] {
+
+  override def buildHandler(): ReadSideProcessor.ReadSideHandler[UserEvent] = ???
+
+  override def aggregateTags: Set[AggregateEventTag[UserEvent]] = ???
 }

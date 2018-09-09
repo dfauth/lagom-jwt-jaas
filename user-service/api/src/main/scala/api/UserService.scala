@@ -1,17 +1,17 @@
 package api
 
 import akka.NotUsed
-import api.request.{ClientRegistration, Role, User}
-import api.response.GeneratedIdDone
+import api.request.{ClientRegistration, Role}
+import api.response.{GeneratedIdDone, User}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Service, ServiceCall}
 
 trait UserService extends Service {
   def registerClient(): ServiceCall[ClientRegistration, GeneratedIdDone]
   def createUser(): ServiceCall[User, GeneratedIdDone]
-  def getUser(userId:Int): ServiceCall[NotUsed, User]
+  def getUser(userId:String): ServiceCall[NotUsed, User]
   def getUsers(): ServiceCall[NotUsed, Set[User]]
-  def getRoles(userId:Option[Int] = None): ServiceCall[NotUsed, Set[Role]]
+  def getRoles(id:Option[String] = None): ServiceCall[NotUsed, Set[Role]]
   def associateRoles(): ServiceCall[Set[Role], Boolean]
 
   override final def descriptor = {
