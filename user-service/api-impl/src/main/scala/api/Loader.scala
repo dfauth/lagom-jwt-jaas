@@ -8,7 +8,7 @@ import com.lightbend.lagom.scaladsl.persistence.jdbc.JdbcPersistenceComponents
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickPersistenceComponents
 import com.lightbend.lagom.scaladsl.server._
 import com.softwaremill.macwire._
-import play.api.db.HikariCPComponents
+import play.api.db.{HikariCPComponents, HikariCPConnectionPool}
 import play.api.libs.ws.ahc.AhcWSComponents
 
 class Loader extends LagomApplicationLoader {
@@ -38,7 +38,7 @@ abstract class Application(context: LagomApplicationContext)
   override lazy val lagomServer = serverFor[UserService](wire[UserServiceImpl])
 
   // connection pool
-  override lazy val connectionPool = ???
+  override lazy val connectionPool = new HikariCPConnectionPool(environment)
 
   // Register the JSON serializer registry
   override lazy val jsonSerializerRegistry = UserSerializerRegistry
