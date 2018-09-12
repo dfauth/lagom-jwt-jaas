@@ -38,7 +38,9 @@ class UserEventProcessor(
 //    }
 //  }
 
-  def insertUser: EventStreamElement[UserCreated] => DBIOAction[Any, NoStream, Nothing] = ???
+  def insertUser: EventStreamElement[UserCreated] => DBIOAction[Any, NoStream, Nothing] = {
+    null
+  }
 
   //  private def insertUser(user: EventStreamElement[UserCreated]) = {
 //    Future.successful(
