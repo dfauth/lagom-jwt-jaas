@@ -6,6 +6,9 @@ scalaVersion := "2.12.6"
 
 lagomCassandraEnabled in ThisBuild := false
 
+val hikari = "com.zaxxer" % "HikariCP" % "2.7.9"
+val slick_hikari = "com.typesafe.slick" %% "slick-hikaricp" % "3.2.3"
+val specs2 = "org.specs2" %% "specs2-core" % "latest.integration" % "test"
 val scalatest = "org.scalatest" %% "scalatest" % "3.0.5" % "test"
 val log4j2_api = "org.apache.logging.log4j" % "log4j-api" % "2.11.0"
 val log4j2_core = "org.apache.logging.log4j" % "log4j-core" % "2.11.0"
@@ -16,6 +19,8 @@ val macwire = "com.softwaremill.macwire" %% "macros" % "2.2.5" % "provided"
 //val base64 = "me.lessis" %% "base64" % "0.2.0"
 val jwt = "com.pauldijou" %% "jwt-play-json" % "0.12.1"
 val h2 = "com.h2database" % "h2" % "latest.integration"
+val slick = "com.typesafe.slick" %% "slick" % "3.2.3"
+
 
 lazy val `lagom-jwt-jaas` = (project in file("."))
   .aggregate(`auth`, `auth-service`, `session-service`, `user-service`)
@@ -117,6 +122,9 @@ lazy val `user-service-api-impl` = (project in file("user-service/api-impl"))
       h2,
       macwire,
       lagomScaladslPubSub,
+      slick,
+      slick_hikari,
+      hikari
     )
   )
   .dependsOn(`user-service-api`)
