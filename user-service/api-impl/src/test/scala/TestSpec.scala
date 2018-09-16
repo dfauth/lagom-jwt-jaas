@@ -1,29 +1,26 @@
 
-import java.util.concurrent.CountDownLatch
-
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
 import org.apache.logging.log4j.scala.Logging
-import org.scalatest.FlatSpec
+import org.scalatest._
 import slick.basic.DatabaseConfig
 import slick.dbio.DBIOAction
 import slick.jdbc.JdbcProfile
 
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Await
 import scala.concurrent.duration._
-import scala.util.{Failure, Success}
 
 
-class TestSpec extends FlatSpec with DbConfiguration with Logging {
+class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging {
 
   val timeout = 500.milliseconds
   val repo = new UserRepository(config)
 
-  def before = {
+  def beforeTest = {
     Await.result(repo.init(), timeout)
   }
 
-  def after = {
+  def afterTest = {
     Await.result(repo.drop(), timeout)
   }
 
@@ -31,62 +28,48 @@ class TestSpec extends FlatSpec with DbConfiguration with Logging {
     import scala.concurrent.ExecutionContext.Implicits.global
 
     try {
-      before
+      beforeTest
 
-      val user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"))
-      val role = Role(roleName = "admin")
+      var user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"))
+      var user1 = User(email = "wilma@flintstone.com", firstName = Some("Wilma"), lastName = Some("Flintstone"))
+      var role = Role(roleName = "admin")
+      var role1 = Role(roleName = "role1")
       val userFuture = repo.insert(user)
+      val user1Future = repo.insert(user1)
       val roleFuture = repo.insert(role)
+      val role1Future = repo.insert(role1)
       val userRoleFuture = for{
-        user <- userFuture
-        role <- roleFuture
+        u <- userFuture
+        r <- roleFuture
+        u1 <- user1Future
+        r1 <- role1Future
       } yield {
-        repo.findUsers.onComplete {
-          case Success(r) => {
-            logger.info("query users:"+r)
-          }
-        }
-        repo.findRoles.onComplete {
-          case Success(r) => {
-            logger.info("query roles:"+r)
-          }
-        }
-        repo.insert(user, role)
+        user = u
+        user1 = u1
+        role = r
+        role1 = r1
+        repo.insert(u, r)
+        repo.insert(u1, r1)
       }
-//      Future.sequence(List(userFuture, roleFuture)).onComplete {
-//        case Success(x) => {
-//          logger.info("query users:"+repo.findUsers)
-//          logger.info("query roles:"+repo.findRoles)
-//        }
-//        case Failure(f) => {
-//          logger.info("WOOZ:"+f)
-//        }
-//      }
-      val latch = new CountDownLatch(10)
-      val myFuture = Future(()=>{
-        logger.info("awaiting")
-//        latch.await()
-        Thread.sleep(10000)
-        logger.info("not awaiting")
-      })
-        userRoleFuture.onComplete {
-        case Success(x) => {
-          repo.findRoles.onComplete {
-            case Success(r) => {
-              logger.info("query myRoles: "+r)
-              latch.countDown()
-            }
-          }
-        }
-        case Failure(y) => {
-          logger.info("failed: "+y)
-        }
-      }
+      val users = Await.result(userFuture, 20.seconds)
+      val allUsers = Await.result(repo.findUsers, 20.seconds)
+      logger.info("query all users:"+allUsers)
+      allUsers.size should be (2)
 
-      Thread.sleep(10000)
-      Await.ready(myFuture, 20.seconds)
+      val roles = Await.result(roleFuture, 20.seconds)
+      val allRoles = Await.result(repo.findRoles, 20.seconds)
+      logger.info("query all roles:"+allRoles)
+      allRoles.size should be (2)
+
+      Await.result(userRoleFuture, 20.seconds)
+
+      val myRolesF = repo.findRolesForUser(user)
+      val myRoles = Await.result(myRolesF, 20.seconds)
+      myRoles.size should be (1)
+
+      logger.info("query myRoles: "+myRoles)
     } finally {
-      after
+      afterTest
     }
   }
 
@@ -222,9 +205,13 @@ class UserRepository(val config: DatabaseConfig[JdbcProfile])
 //      role <- roles
 //    }  yield role
 //
-  def findRolesForUser() = for {
-      ((user, _),role) <- users.join(userRoleMapping).on(_.id === _.userId).join(roles).on(_._2.roleId === _.id)
-    }  yield (user, role)
+  val query = for {
+    ((user, _),role) <- users.join(userRoleMapping).on(_.id === _.userId).join(roles).on(_._2.roleId === _.id)
+  }  yield (user, role)
+
+  def findRolesForUser(user:User) = db.run(query.filter(t=>{
+    t._1.id === user.id
+  }).result)
 
   def update(id: Int, firstName: Option[String], lastName: Option[String]) = {
     val query = for (user <- users if user.id === id)
