@@ -2,7 +2,7 @@ name := "lagom-jwt-jaas"
 
 version := "0.1"
 
-scalaVersion := "2.12.6"
+scalaVersion := "2.11.6"
 
 lagomCassandraEnabled in ThisBuild := false
 
@@ -20,10 +20,20 @@ val macwire = "com.softwaremill.macwire" %% "macros" % "2.2.5" % "provided"
 val jwt = "com.pauldijou" %% "jwt-play-json" % "0.12.1"
 val h2 = "com.h2database" % "h2" % "latest.integration"
 val slick = "com.typesafe.slick" %% "slick" % "3.2.3"
+val automat = "automat" %% "automat" % "0.1"
 
 
 lazy val `lagom-jwt-jaas` = (project in file("."))
   .aggregate(`auth`, `auth-service`, `session-service`, `user-service`)
+  .settings(
+    libraryDependencies ++= Seq(
+      scalatest,
+      log4j2_api,
+      log4j2_core,
+      log4j2_api_scala,
+      automat
+    )
+  )
 
 lazy val `auth` = (project in file("auth"))
   .settings(
@@ -36,7 +46,7 @@ lazy val `auth` = (project in file("auth"))
       lagomScaladslServer,
       accord,
       jwt,
-      play,
+      play
     )
   )
 
@@ -68,7 +78,7 @@ lazy val `auth-service-api-impl` = (project in file("auth-service/api-impl"))
       log4j2_api_scala,
       play,
       lagomScaladslApi,
-      lagomScaladslPersistenceJdbc,
+      lagomScaladslPersistenceJdbc
     )
   )
   .dependsOn(`auth-service-api`)
@@ -92,7 +102,7 @@ lazy val `session-service-api-impl` = (project in file("session-service/api-impl
       log4j2_api_scala,
       play,
       lagomScaladslApi,
-      lagomScaladslPersistenceJdbc,
+      lagomScaladslPersistenceJdbc
     )
   )
   .dependsOn(`session-service-api`)
