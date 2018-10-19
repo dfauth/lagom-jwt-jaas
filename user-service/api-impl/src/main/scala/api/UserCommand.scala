@@ -1,10 +1,23 @@
 package api
 
-import api.response.{GeneratedIdDone, User}
+import akka.Done
+import api.repo.User
+import api.response.GeneratedIdDone
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import play.api.libs.json.{Format, Json}
 
-sealed trait UserCommand
+sealed trait UserCommand// extends Jsonable
+
+case class CreateUserCommand(firstName: String,
+                       lastName: String,
+                       email: String,
+                       username: String,
+                       password: String
+                     ) extends PersistentEntity.ReplyType[Done] with UserCommand
+
+object CreateUserCommand {
+  implicit val format: Format[CreateUserCommand] = Json.format
+}
 
 case class GetUser(id: String) extends PersistentEntity.ReplyType[User] with UserCommand
 
@@ -22,17 +35,6 @@ case class RegisterClient(
                          ) extends PersistentEntity.ReplyType[GeneratedIdDone] with UserCommand
 object RegisterClient {
   implicit val format: Format[RegisterClient] = Json.format
-}
-
-case class CreateUser(
-                       firstName: String,
-                       lastName: String,
-                       email: String,
-                       username: String,
-                       password: String
-                     ) extends PersistentEntity.ReplyType[GeneratedIdDone] with UserCommand
-object CreateUser {
-  implicit val format: Format[CreateUser] = Json.format
 }
 
 case class GetIdentityState() extends PersistentEntity.ReplyType[User] with UserCommand

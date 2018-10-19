@@ -1,7 +1,6 @@
 package test;
 
-import java.util.{Collections, Optional}
-import java.util.function.Function
+import java.util.Collections
 
 import automat.MapBuilder.Value
 import automat.{MapBuilder, Resource};
@@ -16,7 +15,6 @@ object TestResource {
 case class TestResource(uri:String, builder:MapBuilder[String,_] = new Value(Collections.emptyMap())) extends Resource {
   val map = builder.build()
 
-  override def bodyContent[A](f: Function[A, Optional[String]]): String = ???
 }
 
 

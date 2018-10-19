@@ -1,5 +1,6 @@
 package api
 
+import api.request.CreateUser
 import api.response.{GeneratedIdDone, User}
 import com.lightbend.lagom.scaladsl.playjson.{JsonSerializer, JsonSerializerRegistry}
 

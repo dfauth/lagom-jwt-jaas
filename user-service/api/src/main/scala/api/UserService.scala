@@ -1,14 +1,13 @@
 package api
 
-import akka.NotUsed
-import api.request.{ClientRegistration, Role}
-import api.response.{GeneratedIdDone, User}
+import akka.{Done, NotUsed}
+import api.request.{CreateUser, Role}
+import api.response.User
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Service, ServiceCall}
 
 trait UserService extends Service {
-  def registerClient(): ServiceCall[ClientRegistration, GeneratedIdDone]
-  def createUser(): ServiceCall[User, GeneratedIdDone]
+  def createUser(): ServiceCall[CreateUser, Done]
   def getUser(userId:String): ServiceCall[NotUsed, User]
   def getUsers(): ServiceCall[NotUsed, Set[User]]
   def getRoles(id:Option[String] = None): ServiceCall[NotUsed, Set[Role]]
@@ -18,7 +17,6 @@ trait UserService extends Service {
     import Service._
 
     named("user-service").withCalls(
-      restCall(Method.POST, "/api/user/registration", registerClient _),
       restCall(Method.GET, "/api/user/users", getUsers _),
       restCall(Method.GET, "/api/user/roles", getRoles _),
       restCall(Method.POST, "/api/user", createUser _),

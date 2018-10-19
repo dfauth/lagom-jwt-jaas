@@ -77,6 +77,8 @@ lazy val `auth-service-api-impl` = (project in file("auth-service/api-impl"))
       log4j2_core,
       log4j2_api_scala,
       play,
+      guice,
+      h2,
       lagomScaladslApi,
       lagomScaladslPersistenceJdbc
     )
@@ -101,6 +103,8 @@ lazy val `session-service-api-impl` = (project in file("session-service/api-impl
       log4j2_core,
       log4j2_api_scala,
       play,
+      guice,
+      h2,
       lagomScaladslApi,
       lagomScaladslPersistenceJdbc
     )
@@ -126,15 +130,17 @@ lazy val `user-service-api-impl` = (project in file("user-service/api-impl"))
       log4j2_core,
       log4j2_api_scala,
       play,
+      guice,
+      lagomScaladslKafkaBroker,
       lagomScaladslApi,
       lagomScaladslPersistenceJdbc,
       lagomScaladslDevMode,
       h2,
       macwire,
       lagomScaladslPubSub,
-      slick,
-      slick_hikari,
-      hikari
+      slick
+//      slick_hikari,
+//      hikari
     )
   )
   .dependsOn(`user-service-api`)

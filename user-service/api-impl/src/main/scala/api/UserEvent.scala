@@ -1,7 +1,5 @@
 package api
 
-import java.util.UUID
-
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEvent, AggregateEventShards, AggregateEventTag}
 import play.api.libs.json.{Format, Json}
 
@@ -19,7 +17,8 @@ object ClientCreated {
   implicit val format: Format[ClientCreated] = Json.format
 }
 
-case class UserCreated(userId: UUID, firstName: String, lastName: String, email: String, username: String, hashedPassword: String) extends UserEvent
+case class UserCreated(firstName: String, lastName: String, email: String, username: String, password: String) extends UserEvent
+
 object UserCreated {
   implicit val format: Format[UserCreated] = Json.format
 }
