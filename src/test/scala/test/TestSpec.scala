@@ -5,7 +5,8 @@ import org.apache.logging.log4j.scala.Logging
 import org.hamcrest.Matchers.{is, isOneOf}
 import org.scalatest.{FlatSpec, Matchers}
 import test.TestIdentity.WATCHERBGYPSY
-import test.TestResource.{IDENTITY, REGISTRATION}
+import test.TestResource.{IDENTITY, USER}
+import test.TestEnvironment.LOCAL
 
 class TestSpec extends FlatSpec with Matchers with Logging {
 
@@ -18,9 +19,9 @@ class TestSpec extends FlatSpec with Matchers with Logging {
       username = WATCHERBGYPSY.username,
       password = WATCHERBGYPSY.password)
 
-    given.
+    given.environment(LOCAL).
 
-      post(REGISTRATION, user).
+      post(USER, user).
 
       then.
       statusCode(isOneOf[Integer](200, 400))

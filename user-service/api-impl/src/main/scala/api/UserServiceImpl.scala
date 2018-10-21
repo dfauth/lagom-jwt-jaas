@@ -8,7 +8,7 @@ import api.response.User
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.persistence.{PersistentEntityRef, PersistentEntityRegistry}
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
-import org.apache.logging.log4j.scala.Logging
+import log.Logging
 
 import scala.concurrent.ExecutionContext
 
@@ -20,7 +20,6 @@ class UserServiceImpl(
    override def createUser() = authenticated { (tokenContent, _) =>
       ServerServiceCall {
         request => {
-          logger.info("===> Create or update customer {}"+request.toString())
           val ref:PersistentEntityRef[UserCommand] = persistentEntityRegistry.refFor[UserEntity](request.username)
           ref.ask(new CreateUserCommand(request.firstName, request.lastName, request.username, request.password, request.email))
         } // request

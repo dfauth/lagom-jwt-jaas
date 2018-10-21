@@ -12,14 +12,8 @@ object UserSerializerRegistry extends JsonSerializerRegistry {
       JsonSerializer[GeneratedIdDone],
       JsonSerializer[CreateUser],
       JsonSerializer[RegisterClient],
-//      JsonSerializer[IdentityStateDone],
-      JsonSerializer[ClientCreated],
       JsonSerializer[UserCreated],
-//      JsonSerializer[UserLogin],
-//      JsonSerializer[UserLoginDone],
       JsonSerializer[UserCreated],
       JsonSerializer[User]
-//      JsonSerializer[Token],
-//      JsonSerializer[IdentityState]
     )
 }

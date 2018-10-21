@@ -16,14 +16,14 @@ trait DbConfiguration {
 class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging {
 
   val timeout = 500.milliseconds
-  val repo = new UserRepository(config)
+  val repo = new UserRepository(config.profile, config.db)
 
   def beforeTest = {
-    Await.result(repo.init(), timeout)
+    Await.result(repo.runInit(), timeout)
   }
 
   def afterTest = {
-    Await.result(repo.drop(), timeout)
+    Await.result(repo.runDrop(), timeout)
   }
 
   "User" should "be inserted successfully" in {
@@ -36,10 +36,10 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
       var user1 = User(email = "wilma@flintstone.com", firstName = Some("Wilma"), lastName = Some("Flintstone"))
       var role = Role(roleName = "admin")
       var role1 = Role(roleName = "role1")
-      val userFuture = repo.insert(user)
-      val user1Future = repo.insert(user1)
-      val roleFuture = repo.insert(role)
-      val role1Future = repo.insert(role1)
+      val userFuture = repo.runInsert(user)
+      val user1Future = repo.runInsert(user1)
+      val roleFuture = repo.runInsert(role)
+      val role1Future = repo.runInsert(role1)
       val userRoleFuture = for{
         u <- userFuture
         r <- roleFuture
@@ -50,8 +50,8 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
         user1 = u1
         role = r
         role1 = r1
-        repo.insert(u, r)
-        repo.insert(u1, r1)
+        repo.runInsert(u, r)
+        repo.runInsert(u1, r1)
       }
       val users = Await.result(userFuture, 20.seconds)
       val allUsers = Await.result(repo.findUsers, 20.seconds)

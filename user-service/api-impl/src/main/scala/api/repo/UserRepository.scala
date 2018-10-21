@@ -2,20 +2,27 @@ package api.repo
 
 import akka.stream.Materializer
 import akka.stream.scaladsl.{Sink, Source}
-import slick.basic.DatabaseConfig
+import log.Logging
 import slick.dbio.DBIOAction
-import slick.jdbc.JdbcProfile
+import slick.jdbc.{JdbcBackend, JdbcProfile}
+
+import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 case class User(id: Option[Int] = None, email: String,
-                firstName: Option[String], lastName: Option[String])
+                firstName: Option[String] = None, lastName: Option[String] = None)
 
 case class Role(id: Option[Int] = None, roleName: String,
                 description: Option[String] = None)
 
 case class UserRoleXref(userId: Int, roleId:Int)
 
+trait Db {
+  val profile: JdbcProfile
+}
+
 trait UsersTable { this: Db =>
-  import config.driver.api._
+  import profile.api._
 
   class Users(tag: Tag) extends Table[User](tag, "USERS") {
     // Columns
@@ -35,7 +42,7 @@ trait UsersTable { this: Db =>
 }
 
 trait RolesTable { this: Db =>
-  import config.driver.api._
+  import profile.api._
 
   class Roles(tag: Tag) extends Table[Role](tag, "ROLES") {
     // Columns
@@ -53,13 +60,8 @@ trait RolesTable { this: Db =>
   val roles = TableQuery[Roles]
 }
 
-trait Db {
-  val config: DatabaseConfig[JdbcProfile]
-  val db: JdbcProfile#Backend#Database = config.db
-}
-
 trait UserRoleMappingTable extends UsersTable with RolesTable { this: Db =>
-  import config.driver.api._
+  import profile.api._
 
   class UserRoleMapping(tag: Tag) extends Table[UserRoleXref](tag, "USER_ROLE_XREF") {
     // Columns
@@ -79,36 +81,64 @@ trait UserRoleMappingTable extends UsersTable with RolesTable { this: Db =>
 }
 
 
-class UserRepository(val config: DatabaseConfig[JdbcProfile])
-  extends Db with UsersTable with RolesTable with UserRoleMappingTable {
+class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
+  extends Db with UsersTable with RolesTable with UserRoleMappingTable with Logging {
 
-  import config.driver.api._
+  import profile.api._
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  // ...
-  def init() = db.run(
-    DBIOAction.seq(users.schema.create).andThen(
-      DBIOAction.seq(roles.schema.create).andThen(
-        DBIOAction.seq(userRoleMapping.schema.create)
-      )))
-  def drop() = db.run(
-    DBIOAction.seq(userRoleMapping.schema.drop).andThen(
-      DBIOAction.seq(roles.schema.drop).andThen(
-        DBIOAction.seq(users.schema.drop)
-      )))
+  def probe():Try[Future[Int]] = {
+    try {
+      Success(countRoles)
+    } catch {
+      case t:Throwable => Failure(t)
+    }
 
-  //  def insert(user: User) = db.run(users += user)
-  //  def insert(role: Role) = db.run(roles += role)
-  def insert(user: User) = db
-    .run(users returning users.map(_.id) += user)
-    .map(id => user.copy(id = Some(id)))
+  }
 
-  def insert(role: Role) = db
-    .run(roles returning roles.map(_.id) += role)
-    .map(id => role.copy(id = Some(id)))
 
-  def insert(user: User, role: Role) = db.run(userRoleMapping += UserRoleXref(user.id.get, role.id.get))
+  def init() = DBIOAction.seq(users.schema.create,
+                              roles.schema.create,
+                              userRoleMapping.schema.create,
+                              populate
+  )
+
+  def populate() = {
+    val user = new User(email = "administrator@domain.com")
+    val role = new Role(roleName = "superuser")
+      // insert(user) //.map(id -> user.copy(id = Some(id)))
+//      insert(role))
+//      .andThen(insert(admin, superuser))
+    DBIOAction.seq(insert(role),
+                   insert(user)
+      //,insert(user, role)
+    )
+  }
+
+
+  def runInit() = db.run(init)
+
+  def drop() = DBIOAction.seq(userRoleMapping.schema.drop)
+    .andThen(DBIOAction.seq(roles.schema.drop)
+    .andThen(DBIOAction.seq(users.schema.drop)))
+
+  def runDrop() = db.run(drop)
+
+  def insert(user: User) = users returning users.map(_.id) += user
+
+    //.map(id => user.copy(id = Some(id)))
+
+  def runInsert(user: User) = db.run(users returning users.map(_.id) += user).map(id => user.copy(id = Some(id)))
+
+  def insert(role: Role) = roles returning roles.map(_.id) += role
+    //.map(id => role.copy(id = Some(id)))
+
+  def runInsert(role: Role) = db.run(insert(role)).map(id => role.copy(id = Some(id)))
+
+  def insert(user: User, role: Role) = userRoleMapping += UserRoleXref(user.id.get, role.id.get)
+
+  def runInsert(user: User, role: Role) = db.run(insert(user, role))
 
   def find(user:User) =
     db.run((for (u <- users if u.id === user.id) yield u).result.headOption)
@@ -116,22 +146,14 @@ class UserRepository(val config: DatabaseConfig[JdbcProfile])
   def find(role:Role) =
     db.run((for (r <- roles if r.id === role.id) yield r).result.headOption)
 
-  //    def find(id: Int) = db.run(users.filter(_.id === id).result.headOption)
-
   def findRoles(f: (Users, Roles) => Rep[Boolean]) = ??? //db.run(findRoles.filter(f).result)
 
   def findUsers = db.run(users.result)
 
   def findRoles = db.run(roles.result)
 
-  //  def findUsers = for {
-  //      user <- users
-  //    }  yield user
-  //
-  //  def findRoles = for {
-  //      role <- roles
-  //    }  yield role
-  //
+  def countRoles = db.run(roles.size.result)
+
   val query = for {
     ((user, _),role) <- users.join(userRoleMapping).on(_.id === _.userId).join(roles).on(_._2.roleId === _.id)
   }  yield (user, role)

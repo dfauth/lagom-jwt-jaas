@@ -12,11 +12,6 @@ sealed trait UserEvent extends AggregateEvent[UserEvent] {
   override def aggregateTag(): AggregateEventShards[UserEvent] = UserEvent.Tag
 }
 
-case class ClientCreated(company: String) extends UserEvent
-object ClientCreated {
-  implicit val format: Format[ClientCreated] = Json.format
-}
-
 case class UserCreated(firstName: String, lastName: String, email: String, username: String, password: String) extends UserEvent
 
 object UserCreated {

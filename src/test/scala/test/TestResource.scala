@@ -8,7 +8,7 @@ import automat.{MapBuilder, Resource};
 object TestResource {
   val AUTH = TestResource("/api/user/login")
   val IDENTITY = TestResource("/api/state/identity")
-  val REGISTRATION = TestResource("/api/client/registration")
+  val USER = TestResource("/api/user")
   val SUBSCRIPTION = TestResource("/api/stream")
 }
 
