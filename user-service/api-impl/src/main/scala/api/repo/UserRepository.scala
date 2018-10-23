@@ -126,16 +126,13 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
 
   def runDrop() = db.run(drop)
 
-  def insert(user: User) = users returning users.map(_.id) += user
+  def insert(user: User) = (users returning users.map(_.id) += user).map(id => user.copy(id = Some(id)))
 
-    //.map(id => user.copy(id = Some(id)))
+  def runInsert(user: User) = db.run(insert(user))
 
-  def runInsert(user: User) = db.run(users returning users.map(_.id) += user).map(id => user.copy(id = Some(id)))
+  def insert(role: Role) = (roles returning roles.map(_.id) += role).map(id => role.copy(id = Some(id)))
 
-  def insert(role: Role) = roles returning roles.map(_.id) += role
-    //.map(id => role.copy(id = Some(id)))
-
-  def runInsert(role: Role) = db.run(insert(role)).map(id => role.copy(id = Some(id)))
+  def runInsert(role: Role) = db.run(insert(role)) // .map(id => role.copy(id = Some(id)))
 
   def insert(user: User, role: Role) = userRoleMapping += UserRoleXref(user.id.get, role.id.get)
 
@@ -143,6 +140,12 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
 
   def find(user:User) =
     db.run((for (u <- users if u.id === user.id) yield u).result.headOption)
+
+  def findByEmail(email:String) =
+    (for (u <- users if u.email === email) yield u).result.headOption
+
+  def runFindByEmail(email:String) =
+    db.run(findByEmail(email))
 
   def find(role:Role) =
     db.run((for (r <- roles if r.id === role.id) yield r).result.headOption)
@@ -159,9 +162,9 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
     ((user, _),role) <- users.join(userRoleMapping).on(_.id === _.userId).join(roles).on(_._2.roleId === _.id)
   }  yield (user, role)
 
-  def findRolesForUser(user:User) = db.run(query.filter(t=>{
-    t._1.id === user.id
-  }).result)
+  def findRolesForUser(user:User) = query.filter(t=>t._1.id === user.id).result
+
+  def runFindRolesForUser(user:User) = db.run(findRolesForUser(user))
 
   def update(id: Int, firstName: Option[String], lastName: Option[String]) = {
     val query = for (user <- users if user.id === id)

@@ -7,10 +7,12 @@ import slick.jdbc.JdbcProfile
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
+import scala.util.Success
 
 
 trait DbConfiguration {
   lazy val config = DatabaseConfig.forConfig[JdbcProfile]("db")
+  lazy val db = config.db
 }
 
 class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging {
@@ -65,8 +67,61 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
 
       Await.result(userRoleFuture, 20.seconds)
 
-      val myRolesF = repo.findRolesForUser(user)
+      val myUserF = repo.find(user)
+      myUserF.onComplete {
+        case Success(u) => logger.info("myUser: "+u)
+      }
+      val myRolesF = repo.runFindRolesForUser(user)
       val myRoles = Await.result(myRolesF, 20.seconds)
+      logger.info("myRoles:"+myRoles)
+      myRoles.size should be (1)
+
+      logger.info("query myRoles: "+myRoles)
+    } finally {
+      afterTest
+    }
+  }
+
+  "User with role" should "be inserted successfully" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    try {
+      beforeTest
+
+      var user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"))
+      var role = Role(roleName = "admin")
+      val userAction = repo.insert(user)
+      val roleAction = repo.insert(role)
+      val userRoleFuture = for{
+        u <- db.run(userAction)
+        r <- db.run(roleAction)
+        s <- db.run(repo.insert(u,r))
+      } yield {
+        s
+      }
+      val s = Await.result(userRoleFuture, 20.seconds)
+      logger.info("userRoleFuture completed: "+s)
+
+      val allUsers = Await.result(repo.findUsers, 20.seconds)
+      logger.info("query all users:"+allUsers)
+      allUsers.size should be (2)
+
+      val allRoles = Await.result(repo.findRoles, 20.seconds)
+      logger.info("query all roles:"+allRoles)
+      allRoles.size should be (2)
+
+      val myUserF = repo.runFindByEmail(user.email)
+      myUserF.onComplete {
+        case Success(u) if u.isDefined => logger.info("myUser: "+u)
+      }
+      val myUser = Await.result(myUserF, 20.seconds)
+      val myRolesF = repo.runFindRolesForUser(myUser.get)
+      myRolesF.onComplete {
+        case Success(r) => logger.info("myRoles: "+r)
+      }
+
+      val myRoles = Await.result(myRolesF, 20.seconds)
+      logger.info("myRoles:"+myRoles)
       myRoles.size should be (1)
 
       logger.info("query myRoles: "+myRoles)
