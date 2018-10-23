@@ -4,15 +4,17 @@ import api.repo.{User, UserRepository}
 import com.lightbend.lagom.scaladsl.persistence.ReadSideProcessor.ReadSideHandler
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
+import log.Logging
 import slick.dbio.{DBIOAction, NoStream}
 
-import scala.util.{Failure, Success}
+import scala.concurrent.{Await, duration}
+import scala.concurrent.duration.Duration
 
 class UserEventProcessor(
                           readSide: SlickReadSide,
                           userRepo: UserRepository
 
-                        ) extends ReadSideProcessor[UserEvent] {
+                        ) extends ReadSideProcessor[UserEvent] with Logging {
 
   override def buildHandler(): ReadSideHandler[UserEvent] = {
     readSide.builder[UserEvent]("userEventOffset")
@@ -26,10 +28,12 @@ class UserEventProcessor(
   }
 
   def prepareStatements(): DBIOAction[Any, NoStream, Nothing] = {
-    userRepo.probe() match {
-      case Success(f) => DBIOAction.seq()
-      case Failure(t) => userRepo.init()
-    }
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    Await.result(userRepo.probe().map(n => DBIOAction.seq()).recover{
+      case t:Throwable => userRepo.init()
+    }, Duration(10, duration.SECONDS))
   }
 
   def insertUser: EventStreamElement[UserCreated] => DBIOAction[Any, NoStream, Nothing] = {

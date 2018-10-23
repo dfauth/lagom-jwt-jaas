@@ -1,10 +1,11 @@
 package test
 
-case class User(company:String,
-              firstname:String,
-              lastname:String,
-              email:String,
-              username:String,
-              password:String) {
+import scala.beans.BeanProperty
+
+case class User(@BeanProperty firstName:String,
+                @BeanProperty lastName:String,
+                @BeanProperty email:String,
+                @BeanProperty username:String,
+                @BeanProperty password:String) {
 
 }

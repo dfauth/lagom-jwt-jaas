@@ -7,7 +7,6 @@ import slick.dbio.DBIOAction
 import slick.jdbc.{JdbcBackend, JdbcProfile}
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
 
 case class User(id: Option[Int] = None, email: String,
                 firstName: Option[String] = None, lastName: Option[String] = None)
@@ -88,13 +87,15 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def probe():Try[Future[Int]] = {
+  def probe():Future[Int] = {
     try {
-      Success(countRoles)
+      countRoles
     } catch {
-      case t:Throwable => Failure(t)
+      case t => {
+        logger.info(s"probe encountered a throwable: ${t}")
+        throw t
+      }
     }
-
   }
 
 
@@ -152,7 +153,7 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
 
   def findRoles = db.run(roles.result)
 
-  def countRoles = db.run(roles.size.result)
+  def countRoles:Future[Int] = db.run[Int](roles.size.result)
 
   val query = for {
     ((user, _),role) <- users.join(userRoleMapping).on(_.id === _.userId).join(roles).on(_._2.roleId === _.id)

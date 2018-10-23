@@ -2,7 +2,9 @@ package log
 
 import org.slf4j.LoggerFactory
 
-trait Logging {}
+trait Logging {
+  val logger = LoggerFactory.getLogger(classOf[Logging])
+}
 
 object Logging {
 

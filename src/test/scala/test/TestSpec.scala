@@ -1,25 +1,31 @@
 package test
 
+import java.util.function.Consumer
+
 import automat.Automat.given
+import io.restassured.specification.RequestLogSpecification
 import org.apache.logging.log4j.scala.Logging
 import org.hamcrest.Matchers.{is, isOneOf}
 import org.scalatest.{FlatSpec, Matchers}
-import test.TestIdentity.WATCHERBGYPSY
-import test.TestResource.{IDENTITY, USER}
 import test.TestEnvironment.LOCAL
+import test.TestIdentity.WATCHERBGYPSY
+import test.TestResource.USER
 
 class TestSpec extends FlatSpec with Matchers with Logging {
 
   "create an account" should "work" in {
 
-    val user = new User(company = "Thingy, Inc.",
-      firstname = "Watcher",
-      lastname = "BGypsy",
+    val user = new User(firstName = "Watcher",
+      lastName = "BGypsy",
       email = "watcherbgypsy@gmail.com",
       username = WATCHERBGYPSY.username,
       password = WATCHERBGYPSY.password)
 
-    given.environment(LOCAL).
+    given.environment(LOCAL).requestLogInstruction(new Consumer[RequestLogSpecification](){
+      override def accept(t: RequestLogSpecification): Unit = {
+        t.all()
+      }
+    }).
 
       post(USER, user).
 
@@ -29,10 +35,10 @@ class TestSpec extends FlatSpec with Matchers with Logging {
 
   "Json serialization" should "work" in {
 
-    given.identity(WATCHERBGYPSY).
+    given.environment(LOCAL).identity(WATCHERBGYPSY).
       configureAs(Configurations.basicClientWithWebSocket).
 
-      get(IDENTITY).
+      get(USER.queryString("username", WATCHERBGYPSY.username)).
 
 
       then().

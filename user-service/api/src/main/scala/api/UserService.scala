@@ -17,7 +17,7 @@ trait UserService extends Service {
     import Service._
 
     named("user-service").withCalls(
-      restCall(Method.GET, "/api/user/users", getUsers _),
+      restCall(Method.GET, "/api/user", getUsers _),
       restCall(Method.GET, "/api/user/roles", getRoles _),
       restCall(Method.POST, "/api/user", createUser _),
       restCall(Method.GET, "/api/user/:id/roles", getRoles _),
