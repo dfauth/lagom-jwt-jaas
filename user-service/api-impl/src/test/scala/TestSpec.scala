@@ -130,6 +130,46 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
     }
   }
 
+  "User with role chained " should "be inserted successfully" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    try {
+      beforeTest
+
+      var user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"))
+      var role = Role(roleName = "admin")
+      val userAction = repo.insert(user)
+      val roleAction = repo.insert(role)
+      val userRoleFuture = for{
+        u <- db.run(userAction)
+        r <- db.run(roleAction)
+        s <- db.run(repo.insert(u,r))
+      } yield {
+        s
+      }
+      val s = Await.result(userRoleFuture, 20.seconds)
+
+      val allUsers = Await.result(repo.findUsers, 20.seconds)
+      allUsers.size should be (2)
+
+      val allRoles = Await.result(repo.findRoles, 20.seconds)
+      allRoles.size should be (2)
+
+      val myUserF = repo.runFindByEmail(user.email)
+      val result = myUserF.map {
+        case Some(u) => u
+      }.flatMap {
+        case u:User => repo.runFindRolesForUser(u)
+      }
+      result.onComplete {
+        case Success(Seq(s)) => logger.info("s: "+s)
+      }
+      Await.result(result, 20.seconds)
+    } finally {
+      afterTest
+    }
+  }
+
 }
 
 

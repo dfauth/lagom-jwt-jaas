@@ -108,12 +108,14 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
   def populate() = {
     val user = new User(email = "administrator@domain.com")
     val role = new Role(roleName = "superuser")
-      // insert(user) //.map(id -> user.copy(id = Some(id)))
-//      insert(role))
-//      .andThen(insert(admin, superuser))
-    DBIOAction.seq(insert(role),
-                   insert(user)
-      //,insert(user, role)
+//    (for {
+//      u <- insert(user)
+//      r <- insert(role)
+//      s <- insert(u,r)
+//    } yield {
+//      s
+//    }).result
+    DBIOAction.seq(insert(role),insert(user)
     )
   }
 
