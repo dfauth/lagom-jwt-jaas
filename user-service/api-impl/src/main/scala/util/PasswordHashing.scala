@@ -10,7 +10,6 @@ object PasswordHashing {
     val buffer = new StringBuffer
     encodedhash
       .map(b => (0xFF & b).toHexString)
-      .map(h => String.format("%s",h))
       .foldLeft(buffer)((buffer, h) => buffer.append(h))
     buffer.toString
   }

@@ -19,7 +19,7 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
   val repo = new UserRepository(config.profile, config.db)
 
   def beforeTest = {
-    Await.result(repo.runInit(), timeout)
+    Await.result(repo.runInit(), timeout) // init creates an boot administrator user and superuser role
   }
 
   def afterTest = {
@@ -56,12 +56,12 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
       val users = Await.result(userFuture, 20.seconds)
       val allUsers = Await.result(repo.findUsers, 20.seconds)
       logger.info("query all users:"+allUsers)
-      allUsers.size should be (2)
+      allUsers.size should be (3)
 
       val roles = Await.result(roleFuture, 20.seconds)
       val allRoles = Await.result(repo.findRoles, 20.seconds)
       logger.info("query all roles:"+allRoles)
-      allRoles.size should be (2)
+      allRoles.size should be (3)
 
       Await.result(userRoleFuture, 20.seconds)
 
