@@ -167,6 +167,12 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
 
   def runFindRoles = db.run(findRoles)
 
+  def runFindByCredentials(username:String, password:String) = db.run(findByCredentials(username, password))
+
+  def findByCredentials(username:String, password:String) = (for (
+    u <- users if (u.email === username && u.hashedPassword === password)
+  ) yield u).result.headOption
+
   def countRoles:Future[Int] = db.run[Int](roles.size.result)
 
   val query = for {

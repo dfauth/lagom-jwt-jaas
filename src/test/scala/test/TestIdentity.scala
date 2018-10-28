@@ -6,7 +6,7 @@ object TestIdentity {
   val WATCHERBGYPSY = new TestIdentity("watcherbgypsy@gmail.com", "password")
 }
 
-class TestIdentity private(val username: String, val password: String) extends Identity {
+case class TestIdentity private(val username: String, val password: String) extends Identity {
 }
 
 object TestRole {

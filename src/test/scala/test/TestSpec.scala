@@ -9,8 +9,8 @@ import org.hamcrest.Matchers.isOneOf
 import org.scalatest.{FlatSpec, Matchers}
 import test.TestEnvironment.LOCAL
 import test.TestIdentity.WATCHERBGYPSY
+import test.TestResource.{INFO, ROLE, USER}
 import test.TestRole.TESTROLE
-import test.TestResource.{USER,ROLE}
 
 class TestSpec extends FlatSpec with Matchers with Logging {
 
@@ -102,5 +102,29 @@ class TestSpec extends FlatSpec with Matchers with Logging {
 //      statusCode(200).
 //      body("users[0].username", is(WATCHERBGYPSY.username))
   }
+
+  "authentication " should "work" in {
+
+    val body = given.environment(LOCAL).identity(WATCHERBGYPSY).
+      configureAs(Configurations.basicClientWithWebSocket).logInstructions(new Consumer[RequestLogSpecification](){
+      override def accept(t: RequestLogSpecification): Unit = {
+        t.all()
+      }
+    },new Consumer[ResponseLogSpecification](){
+      override def accept(t: ResponseLogSpecification): Unit = {
+        t.all()
+      }
+    }).
+      get(INFO).getBody.peek()
+
+      logger.info("response: "+body)
+
+
+//      then().
+//      statusCode(200).
+//      body("users[0].username", is(WATCHERBGYPSY.username))
+  }
+
+  case class Credentials(username: String, password: String)
 
 }

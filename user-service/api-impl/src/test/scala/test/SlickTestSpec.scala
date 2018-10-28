@@ -1,3 +1,4 @@
+package test
 
 import api.repo.{Role, User, UserRepository}
 import org.apache.logging.log4j.scala.Logging
@@ -9,13 +10,15 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 import scala.util.Success
 
+import util.PasswordHashing.hashPassword
+
 
 trait DbConfiguration {
   lazy val config = DatabaseConfig.forConfig[JdbcProfile]("db")
   lazy val db = config.db
 }
 
-class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging {
+class SlickTestSpec extends FlatSpec with DbConfiguration with Matchers with Logging {
 
   val timeout = 500.milliseconds
   val repo = new UserRepository(config.profile, config.db)
@@ -165,6 +168,28 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
         case Success(Seq(s)) => logger.info("s: "+s)
       }
       Await.result(result, 20.seconds)
+    } finally {
+      afterTest
+    }
+  }
+
+  "Fred " should "be able to authenticate" in {
+    import scala.concurrent.ExecutionContext.Implicits.global
+
+    try {
+      beforeTest
+
+      val user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"), hashedPassword = hashPassword("password"))
+      val userAction = repo.insert(user)
+      val userRoleFuture = for{
+        u <- db.run(userAction)
+      } yield u
+      val s = Await.result(userRoleFuture, 20.seconds)
+
+      val fred = Await.result(repo.runFindByCredentials(user.email, user.hashedPassword), 20.seconds)
+      fred match {
+        case Some(User(id, email, firstName, lastName, password)) => (firstName, lastName, email) should be (user.firstName, user.lastName, user.email)
+      }
     } finally {
       afterTest
     }

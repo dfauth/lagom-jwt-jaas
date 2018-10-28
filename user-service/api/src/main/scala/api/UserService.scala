@@ -1,12 +1,15 @@
 package api
 
 import akka.{Done, NotUsed}
-import api.request.{CreateRole, CreateUser}
+import api.authentication.Token
+import api.request.{CreateRole, CreateUser, UserCredentials}
 import api.response.{Role, User}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Service, ServiceCall}
 
 trait UserService extends Service {
+  def getCurrentUser(): ServiceCall[NotUsed, User]
+  def authenticate(): ServiceCall[UserCredentials, Token]
   def createUser(): ServiceCall[CreateUser, Done]
   def createRole(): ServiceCall[CreateRole, Done]
   def getUser(id:Int): ServiceCall[NotUsed, User]
@@ -19,6 +22,8 @@ trait UserService extends Service {
     import Service._
 
     named("user-service").withCalls(
+      restCall(Method.GET, "/api/user/info", getCurrentUser _),
+      restCall(Method.POST, "/api/user/authenticate", authenticate _),
       restCall(Method.GET, "/api/user", getUsers _),
       restCall(Method.GET, "/api/user/:id", getUser _),
       restCall(Method.GET, "/api/user/?username", getUserByUsername _),

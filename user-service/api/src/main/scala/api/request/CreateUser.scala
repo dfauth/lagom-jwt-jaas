@@ -36,3 +36,27 @@ object CreateRole {
     c.roleName as notEmptyKey("roleName") is notEmpty
   }
 }
+
+case class UserCredentials(username: String,
+                           password: String)
+
+object UserCredentials {
+  implicit val format: Format[UserCredentials] = Json.format
+
+  implicit val userCredentialsValidator = validator[UserCredentials] { c =>
+    c.username as notEmptyKey("username") is notEmpty
+    c.password as notEmptyKey("password") is notEmpty
+  }
+}
+
+//case class Tokens(authToken: String,
+//                  refreshToken: String)
+//
+//object Tokens {
+//  implicit val format: Format[Tokens] = Json.format
+//
+//  implicit val tokensValidator = validator[Tokens] { c =>
+//    c.authToken as notEmptyKey("authToken") is notEmpty
+//    c.refreshToken as notEmptyKey("refreshToken") is notEmpty
+//  }
+//}

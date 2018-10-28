@@ -7,10 +7,11 @@ import automat.MapBuilder.Value
 import automat.{MapBuilder, Resource};
 
 object TestResource {
-  val AUTH = TestResource("/api/user/login")
+  val AUTH = TestResource("/api/user/authenticate")
   val IDENTITY = TestResource("/api/state/identity")
-  val USER = TestResource("/api/user/")
+  val USER = TestResource("/api/user")
   val ROLE = TestResource("/api/user/roles")
+  val INFO = TestResource("/api/user/info")
   val SUBSCRIPTION = TestResource("/api/stream")
 }
 

@@ -15,7 +15,7 @@ public class Configurations {
             apply(authHandler).
             onResponse().
             apply(
-                    forHttpCode(403).
+                    forHttpCode(401).
                             use(
                                     loginHandler(TestResource$.MODULE$.AUTH())
                                             .andThen(storeToken)

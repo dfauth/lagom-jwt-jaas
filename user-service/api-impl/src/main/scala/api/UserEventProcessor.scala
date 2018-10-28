@@ -5,11 +5,11 @@ import com.lightbend.lagom.scaladsl.persistence.ReadSideProcessor.ReadSideHandle
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import log.Logging
-import slick.dbio.{DBIOAction, NoStream}
 import util.PasswordHashing.hashPassword
+import slick.dbio.{DBIOAction, NoStream}
 
-import scala.concurrent.{Await, duration}
 import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, duration}
 
 class UserEventProcessor(
                           readSide: SlickReadSide,
