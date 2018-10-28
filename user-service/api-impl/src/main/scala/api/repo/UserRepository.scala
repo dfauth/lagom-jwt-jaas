@@ -5,13 +5,14 @@ import akka.stream.scaladsl.{Sink, Source}
 import log.Logging
 import slick.dbio.DBIOAction
 import slick.jdbc.{JdbcBackend, JdbcProfile}
+import util.PasswordHashing.hashPassword
 
 import scala.concurrent.Future
 
-case class User(id: Option[Int] = None, email: String,
-                firstName: Option[String] = None, lastName: Option[String] = None)
+case class User(id:Int = -1, email: String,
+                firstName: Option[String] = None, lastName: Option[String] = None, hashedPassword:String)
 
-case class Role(id: Option[Int] = None, roleName: String,
+case class Role(id:Int = -1, roleName: String,
                 description: Option[String] = None)
 
 case class UserRoleXref(userId: Int, roleId:Int)
@@ -29,12 +30,13 @@ trait UsersTable { this: Db =>
     def email = column[String]("USER_EMAIL", O.Length(512), O.Unique)
     def firstName = column[Option[String]]("USER_FIRST_NAME", O.Length(64))
     def lastName = column[Option[String]]("USER_LAST_NAME", O.Length(64))
+    def hashedPassword = column[String]("PASSWORD_HASH", O.Length(256))
 
     // Indexes
     def emailIndex = index("USER_EMAIL_IDX", email, true)
 
     // Select
-    def * = (id.?, email, firstName, lastName) <> (User.tupled, User.unapply)
+    def * = (id, email, firstName, lastName, hashedPassword) <> (User.tupled, User.unapply)
   }
 
   val users = TableQuery[Users]
@@ -53,7 +55,7 @@ trait RolesTable { this: Db =>
     def roleNameIndex = index("ROLE_NAME_IDX", roleName, true)
 
     // Select
-    def * = (id.?, roleName, description) <> (Role.tupled, Role.unapply)
+    def * = (id, roleName, description) <> (Role.tupled, Role.unapply)
   }
 
   val roles = TableQuery[Roles]
@@ -106,8 +108,8 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
   )
 
   def populate() = {
-    val user = new User(email = "administrator@domain.com")
-    val role = new Role(roleName = "superuser")
+    val user = new User(email = "administrator@domain.com", hashedPassword = hashPassword("password"))
+    val role = new Role(roleName = "superuser", description = Some("SuperUser"))
     for {
       u <- insert(user)
       r <- insert(role)
@@ -126,15 +128,15 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
 
   def runDrop() = db.run(drop)
 
-  def insert(user: User) = (users returning users.map(_.id) += user).map(id => user.copy(id = Some(id)))
+  def insert(user: User) = (users returning users.map(_.id) += user).map(id => user.copy(id = id))
 
   def runInsert(user: User) = db.run(insert(user))
 
-  def insert(role: Role) = (roles returning roles.map(_.id) += role).map(id => role.copy(id = Some(id)))
+  def insert(role: Role) = (roles returning roles.map(_.id) += role).map(id => role.copy(id = id))
 
-  def runInsert(role: Role) = db.run(insert(role)) // .map(id => role.copy(id = Some(id)))
+  def runInsert(role: Role) = db.run(insert(role))
 
-  def insert(user: User, role: Role) = userRoleMapping += UserRoleXref(user.id.get, role.id.get)
+  def insert(user: User, role: Role) = userRoleMapping += UserRoleXref(user.id, role.id)
 
   def runInsert(user: User, role: Role) = db.run(insert(user, role))
 
@@ -183,7 +185,7 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
     db.run(roles.filter(_.id === role.id).delete) map { _ > 0 }
 
   def delete(user: User, role: Role) = {
-    db.run(userRoleMapping.filter(x=>(x.userId === user.id.get) && (x.roleId === role.id.get)).delete) map { _ > 0 }
+    db.run(userRoleMapping.filter(x=>(x.userId === user.id) && (x.roleId === role.id)).delete) map { _ > 0 }
   }
 
 

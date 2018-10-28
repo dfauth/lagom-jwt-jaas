@@ -27,7 +27,7 @@ object CreateUser {
 }
 
 case class CreateRole(roleName: String,
-                      description: String)
+                      description: String) extends WithRoleFields
 
 object CreateRole {
   implicit val format: Format[CreateRole] = Json.format

@@ -6,6 +6,7 @@ import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
 import log.Logging
 import slick.dbio.{DBIOAction, NoStream}
+import util.PasswordHashing.hashPassword
 
 import scala.concurrent.{Await, duration}
 import scala.concurrent.duration.Duration
@@ -40,7 +41,8 @@ class UserEventProcessor(
   def insertUser: EventStreamElement[UserCreated] => DBIOAction[Any, NoStream, Nothing] = {
     e => userRepo.insert(new User(email = e.event.email,
                                   firstName = Option(e.event.firstName),
-                                  lastName = Option(e.event.lastName)
+                                  lastName = Option(e.event.lastName),
+                                  hashedPassword = hashPassword(e.event.password)
     ))
   }
 

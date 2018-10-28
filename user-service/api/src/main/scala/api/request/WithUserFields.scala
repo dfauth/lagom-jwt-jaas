@@ -6,3 +6,8 @@ trait WithUserFields {
   val email: String
   val username: String
 }
+
+trait WithRoleFields {
+  val roleName: String
+  val description: String
+}

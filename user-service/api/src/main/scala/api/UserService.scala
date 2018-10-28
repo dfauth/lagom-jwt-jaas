@@ -1,8 +1,8 @@
 package api
 
 import akka.{Done, NotUsed}
-import api.request.{CreateRole, CreateUser, Role}
-import api.response.User
+import api.request.{CreateRole, CreateUser}
+import api.response.{Role, User}
 import com.lightbend.lagom.scaladsl.api.transport.Method
 import com.lightbend.lagom.scaladsl.api.{Service, ServiceCall}
 

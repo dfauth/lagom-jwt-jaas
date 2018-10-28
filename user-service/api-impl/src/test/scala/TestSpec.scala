@@ -34,8 +34,8 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
     try {
       beforeTest
 
-      var user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"))
-      var user1 = User(email = "wilma@flintstone.com", firstName = Some("Wilma"), lastName = Some("Flintstone"))
+      var user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"), hashedPassword = "password")
+      var user1 = User(email = "wilma@flintstone.com", firstName = Some("Wilma"), lastName = Some("Flintstone"), hashedPassword = "password")
       var role = Role(roleName = "admin")
       var role1 = Role(roleName = "role1")
       val userFuture = repo.runInsert(user)
@@ -88,7 +88,7 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
     try {
       beforeTest
 
-      var user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"))
+      var user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"), hashedPassword = "password")
       var role = Role(roleName = "admin")
       val userAction = repo.insert(user)
       val roleAction = repo.insert(role)
@@ -136,7 +136,7 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
     try {
       beforeTest
 
-      var user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"))
+      var user = User(email = "fred@flintstone.com", firstName = Some("Fred"), lastName = Some("Flintstone"), hashedPassword = "password")
       var role = Role(roleName = "admin")
       val userAction = repo.insert(user)
       val roleAction = repo.insert(role)

@@ -2,8 +2,8 @@ package api
 
 import akka.{Done, NotUsed}
 import api.repo.UserRepository
-import api.request.{CreateRole, CreateUser, Role}
-import api.response.User
+import api.request.{CreateRole, CreateUser}
+import api.response.{Role, User}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.persistence.{PersistentEntityRef, PersistentEntityRegistry}
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
@@ -57,7 +57,7 @@ class UserServiceImpl(
       request => {
         userRepository.runFindRoles.map[Set[Role]](
           _.foldLeft(Set[Role]())((a, r) => {
-            a + new Role(r.id.getOrElse(-1), r.roleName, r.description.getOrElse(""))
+            a + new Role(r.id, r.roleName, r.description.getOrElse(""))
           }) // foldLeft
         ) // map
       }
