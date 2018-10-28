@@ -10,6 +10,7 @@ object TestResource {
   val AUTH = TestResource("/api/user/login")
   val IDENTITY = TestResource("/api/state/identity")
   val USER = TestResource("/api/user")
+  val ROLE = TestResource("/api/user/roles")
   val SUBSCRIPTION = TestResource("/api/stream")
 }
 

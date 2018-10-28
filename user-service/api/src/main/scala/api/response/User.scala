@@ -11,7 +11,6 @@ case class User(
   lastName: String,
   email: String,
   username: String,
-  password: String
 ) extends WithUserFields
 
 object User {
@@ -23,7 +22,5 @@ object User {
     u.email as matchRegexFullyKey("email") should matchRegexFully(Matchers.Email)
     u.username as notEmptyKey("username") is notEmpty
     u.username as forSizeKey("username") has size > 5
-    u.password as notEmptyKey("password") is notEmpty
-    u.password as forSizeKey("password")  has size > 7
   }
 }

@@ -56,12 +56,12 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
         repo.runInsert(u1, r1)
       }
       val users = Await.result(userFuture, 20.seconds)
-      val allUsers = Await.result(repo.findUsers, 20.seconds)
+      val allUsers = Await.result(repo.runFindUsers, 20.seconds)
       logger.info("query all users:"+allUsers)
       allUsers.size should be (3)
 
       val roles = Await.result(roleFuture, 20.seconds)
-      val allRoles = Await.result(repo.findRoles, 20.seconds)
+      val allRoles = Await.result(repo.runFindRoles, 20.seconds)
       logger.info("query all roles:"+allRoles)
       allRoles.size should be (3)
 
@@ -102,11 +102,11 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
       val s = Await.result(userRoleFuture, 20.seconds)
       logger.info("userRoleFuture completed: "+s)
 
-      val allUsers = Await.result(repo.findUsers, 20.seconds)
+      val allUsers = Await.result(repo.runFindUsers, 20.seconds)
       logger.info("query all users:"+allUsers)
       allUsers.size should be (2)
 
-      val allRoles = Await.result(repo.findRoles, 20.seconds)
+      val allRoles = Await.result(repo.runFindRoles, 20.seconds)
       logger.info("query all roles:"+allRoles)
       allRoles.size should be (2)
 
@@ -149,10 +149,10 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
       }
       val s = Await.result(userRoleFuture, 20.seconds)
 
-      val allUsers = Await.result(repo.findUsers, 20.seconds)
+      val allUsers = Await.result(repo.runFindUsers, 20.seconds)
       allUsers.size should be (2)
 
-      val allRoles = Await.result(repo.findRoles, 20.seconds)
+      val allRoles = Await.result(repo.runFindRoles, 20.seconds)
       allRoles.size should be (2)
 
       val myUserF = repo.runFindByEmail(user.email)

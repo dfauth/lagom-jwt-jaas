@@ -108,15 +108,13 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
   def populate() = {
     val user = new User(email = "administrator@domain.com")
     val role = new Role(roleName = "superuser")
-//    (for {
-//      u <- insert(user)
-//      r <- insert(role)
-//      s <- insert(u,r)
-//    } yield {
-//      s
-//    }).result
-    DBIOAction.seq(insert(role),insert(user)
-    )
+    for {
+      u <- insert(user)
+      r <- insert(role)
+      s <- insert(u,r)
+    } yield {
+      s
+    }
   }
 
 
@@ -154,9 +152,13 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
 
   def findRoles(f: (Users, Roles) => Rep[Boolean]) = ??? //db.run(findRoles.filter(f).result)
 
-  def findUsers = db.run(users.result)
+  def findUsers = users.result
 
-  def findRoles = db.run(roles.result)
+  def runFindUsers = db.run(findUsers)
+
+  def findRoles = roles.result
+
+  def runFindRoles = db.run(findRoles)
 
   def countRoles:Future[Int] = db.run[Int](roles.size.result)
 

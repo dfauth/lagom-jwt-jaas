@@ -6,7 +6,7 @@ import api.response.GeneratedIdDone
 import com.lightbend.lagom.scaladsl.persistence.PersistentEntity
 import play.api.libs.json.{Format, Json}
 
-sealed trait UserCommand// extends Jsonable
+sealed trait UserCommand // extends Jsonable
 
 case class CreateUserCommand(firstName: String,
                        lastName: String,
@@ -17,6 +17,13 @@ case class CreateUserCommand(firstName: String,
 
 object CreateUserCommand {
   implicit val format: Format[CreateUserCommand] = Json.format
+}
+
+case class CreateRoleCommand(roleName: String,
+                             description: String) extends PersistentEntity.ReplyType[Done] with UserCommand
+
+object CreateRoleCommand {
+  implicit val format: Format[CreateRoleCommand] = Json.format
 }
 
 case class GetUser(id: String) extends PersistentEntity.ReplyType[User] with UserCommand

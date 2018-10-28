@@ -28,6 +28,14 @@ class UserEntity extends PersistentEntity {
         ) { _ =>
           ctx.reply(Done)
         }
+    }.onCommand[CreateRoleCommand, Done] {
+      case (CreateRoleCommand(roleName, description), ctx, state) =>
+        ctx.thenPersist(
+          RoleCreated(roleName,
+            description)
+        ) { _ =>
+          ctx.reply(Done)
+        }
     }
   }
 }

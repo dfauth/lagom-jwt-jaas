@@ -9,3 +9,8 @@ case class User(@BeanProperty firstName:String,
                 @BeanProperty password:String) {
 
 }
+
+case class Role(@BeanProperty roleName:String,
+                @BeanProperty description:String) {
+
+}

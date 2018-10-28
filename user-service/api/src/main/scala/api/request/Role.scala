@@ -5,6 +5,7 @@ import com.wix.accord.dsl._
 import play.api.libs.json.{Format, Json}
 
 case class Role(
+  id: Int,
   name: String,
   description: String
 )

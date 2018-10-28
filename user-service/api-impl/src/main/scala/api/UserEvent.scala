@@ -17,3 +17,9 @@ case class UserCreated(firstName: String, lastName: String, email: String, usern
 object UserCreated {
   implicit val format: Format[UserCreated] = Json.format
 }
+
+case class RoleCreated(roleName: String, description: String) extends UserEvent
+
+object RoleCreated {
+  implicit val format: Format[RoleCreated] = Json.format
+}

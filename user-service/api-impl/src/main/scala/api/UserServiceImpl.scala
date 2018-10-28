@@ -2,7 +2,7 @@ package api
 
 import akka.{Done, NotUsed}
 import api.repo.UserRepository
-import api.request.{CreateUser, Role}
+import api.request.{CreateRole, CreateUser, Role}
 import api.response.User
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.persistence.{PersistentEntityRef, PersistentEntityRegistry}
@@ -26,25 +26,43 @@ class UserServiceImpl(
       } // ServerServiceCall
     } // authenticated
 
-  override def getUsers(): ServiceCall[NotUsed, Set[User]] = ???
-//    ServerServiceCall {
-//      request => {
-//        Future[Set[User]] {
-//
-//          Set(userRepository.findUsers.map(_.foldLeft(scala.collection.mutable.Set[User]())((a,u)=>{
-//            a.add(new User(u.firstName.getOrElse(""), u.lastName.getOrElse(""), u.email, "fred", "password"))
-//            a
-//          })))
-//        }
-//      }
-//    }
-//  }
+   override def createRole(): ServiceCall[CreateRole, Done] = {
+//   override def createRole() = authenticated { (tokenContent, _) =>
+      ServerServiceCall {
+        request => {
+          val ref:PersistentEntityRef[UserCommand] = persistentEntityRegistry.refFor[UserEntity](request.roleName)
+          ref.ask(new CreateRoleCommand(request.roleName, request.description))
+        } // request
+      } // ServerServiceCall
+    } // authenticated
+
+  override def getUsers(): ServiceCall[NotUsed, Set[User]] =  { //???
+    ServerServiceCall {
+      request => {
+        userRepository.runFindUsers.map[Set[User]](
+          _.foldLeft(Set[User]())((a,u)=>{
+          a + new User(u.firstName.getOrElse(""), u.lastName.getOrElse(""), u.email, u.email)
+        }) // foldLeft
+        ) // map
+      }
+    }
+  }
 
   override def associateRoles(): ServiceCall[Set[Role], Boolean] = ???
 
   override def getUser(id: String): ServiceCall[NotUsed, User] = ???
 
-  override def getRoles(id: Option[String]): ServiceCall[NotUsed, Set[Role]] = ???
+  override def getRoles(): ServiceCall[NotUsed, Set[Role]] = {
+    ServerServiceCall {
+      request => {
+        userRepository.runFindRoles.map[Set[Role]](
+          _.foldLeft(Set[Role]())((a, r) => {
+            a + new Role(r.id.getOrElse(-1), r.roleName, r.description.getOrElse(""))
+          }) // foldLeft
+        ) // map
+      }
+    }
+  }
 
 
 //  def doit[B](request: User, onSuccess: () => Future[B]): Future[B] = {

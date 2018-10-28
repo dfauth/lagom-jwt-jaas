@@ -1,6 +1,6 @@
 package api
 
-import api.repo.{User, UserRepository}
+import api.repo.{Role, User, UserRepository}
 import com.lightbend.lagom.scaladsl.persistence.ReadSideProcessor.ReadSideHandler
 import com.lightbend.lagom.scaladsl.persistence.slick.SlickReadSide
 import com.lightbend.lagom.scaladsl.persistence.{AggregateEventTag, EventStreamElement, ReadSideProcessor}
@@ -20,6 +20,7 @@ class UserEventProcessor(
     readSide.builder[UserEvent]("userEventOffset")
         .setGlobalPrepare(prepareStatements())
       .setEventHandler[UserCreated](insertUser)
+      .setEventHandler[RoleCreated](insertRole)
       .build()
   }
 
@@ -41,6 +42,10 @@ class UserEventProcessor(
                                   firstName = Option(e.event.firstName),
                                   lastName = Option(e.event.lastName)
     ))
+  }
+
+  def insertRole: EventStreamElement[RoleCreated] => DBIOAction[Any, NoStream, Nothing] = {
+    e => userRepo.insert(new Role(roleName = e.event.roleName, description = Some(e.event.description)))
   }
 
 }
