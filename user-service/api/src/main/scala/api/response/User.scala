@@ -7,6 +7,7 @@ import com.wix.accord.dsl._
 import play.api.libs.json.{Format, Json}
 
 case class User(
+  id:Int,
   firstName: String,
   lastName: String,
   email: String,

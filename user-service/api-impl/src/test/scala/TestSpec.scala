@@ -67,7 +67,7 @@ class TestSpec extends FlatSpec with DbConfiguration with Matchers with Logging 
 
       Await.result(userRoleFuture, 20.seconds)
 
-      val myUserF = repo.find(user)
+      val myUserF = repo.runFind(user)
       myUserF.onComplete {
         case Success(u) => logger.info("myUser: "+u)
       }

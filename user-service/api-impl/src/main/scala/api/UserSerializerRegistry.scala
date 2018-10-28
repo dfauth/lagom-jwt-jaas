@@ -12,7 +12,7 @@ object UserSerializerRegistry extends JsonSerializerRegistry {
       JsonSerializer[CreateUser],
       JsonSerializer[CreateRole],
       JsonSerializer[Role],
-      JsonSerializer[UserCreated],
+//      JsonSerializer[UserCreated],
       JsonSerializer[User]
     )
 }

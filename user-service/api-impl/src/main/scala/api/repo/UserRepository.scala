@@ -140,8 +140,13 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
 
   def runInsert(user: User, role: Role) = db.run(insert(user, role))
 
-  def find(user:User) =
-    db.run((for (u <- users if u.id === user.id) yield u).result.headOption)
+  def find(user:User) = findUser(user.id)
+
+  def runFind(user:User) = runFindUser(user.id)
+
+  def findUser(id:Int) = (for (u <- users if u.id === id) yield u).result.headOption
+
+  def runFindUser(id:Int) = db.run(findUser(id))
 
   def findByEmail(email:String) =
     (for (u <- users if u.email === email) yield u).result.headOption

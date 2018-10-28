@@ -9,7 +9,8 @@ import com.lightbend.lagom.scaladsl.api.{Service, ServiceCall}
 trait UserService extends Service {
   def createUser(): ServiceCall[CreateUser, Done]
   def createRole(): ServiceCall[CreateRole, Done]
-  def getUser(userId:String): ServiceCall[NotUsed, User]
+  def getUser(id:Int): ServiceCall[NotUsed, User]
+  def getUserByUsername(username:String): ServiceCall[NotUsed, User]
   def getUsers(): ServiceCall[NotUsed, Set[User]]
   def getRoles(): ServiceCall[NotUsed, Set[Role]]
   def associateRoles(): ServiceCall[Set[Role], Boolean]
@@ -19,6 +20,8 @@ trait UserService extends Service {
 
     named("user-service").withCalls(
       restCall(Method.GET, "/api/user", getUsers _),
+      restCall(Method.GET, "/api/user/:id", getUser _),
+      restCall(Method.GET, "/api/user/?username", getUserByUsername _),
       restCall(Method.GET, "/api/user/roles", getRoles _),
       restCall(Method.POST, "/api/user", createUser _),
       restCall(Method.POST, "/api/user/roles", createRole _),

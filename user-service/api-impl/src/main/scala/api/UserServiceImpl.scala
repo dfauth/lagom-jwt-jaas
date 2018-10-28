@@ -5,6 +5,7 @@ import api.repo.UserRepository
 import api.request.{CreateRole, CreateUser}
 import api.response.{Role, User}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
+import com.lightbend.lagom.scaladsl.api.transport.NotFound
 import com.lightbend.lagom.scaladsl.persistence.{PersistentEntityRef, PersistentEntityRegistry}
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import log.Logging
@@ -41,7 +42,7 @@ class UserServiceImpl(
       request => {
         userRepository.runFindUsers.map[Set[User]](
           _.foldLeft(Set[User]())((a,u)=>{
-          a + new User(u.firstName.getOrElse(""), u.lastName.getOrElse(""), u.email, u.email)
+          a + new User(u.id, u.firstName.getOrElse(""), u.lastName.getOrElse(""), u.email, u.email)
         }) // foldLeft
         ) // map
       }
@@ -50,7 +51,27 @@ class UserServiceImpl(
 
   override def associateRoles(): ServiceCall[Set[Role], Boolean] = ???
 
-  override def getUser(id: String): ServiceCall[NotUsed, User] = ???
+  override def getUser(id: Int): ServiceCall[NotUsed, User] = {
+    ServerServiceCall {
+      request => {
+        userRepository.runFindUser(id).map[User] {
+          case Some(u) => new User(u.id, u.firstName.getOrElse(""), u.lastName.getOrElse(""), u.email, u.email)
+          case None => throw NotFound(s"no user with id ${id} found")
+        }
+      }
+    }
+  }
+
+  override def getUserByUsername(userName:String): ServiceCall[NotUsed, User] = {
+    ServerServiceCall {
+      request => {
+        userRepository.runFindByEmail(userName).map[User] {
+          case Some(u) => new User(u.id, u.firstName.getOrElse(""), u.lastName.getOrElse(""), u.email, u.email)
+          case None => throw NotFound(s"no user with username ${userName} found")
+        }
+      }
+    }
+  }
 
   override def getRoles(): ServiceCall[NotUsed, Set[Role]] = {
     ServerServiceCall {
@@ -64,18 +85,4 @@ class UserServiceImpl(
     }
   }
 
-
-//  def doit[B](request: User, onSuccess: () => Future[B]): Future[B] = {
-//    val canProceed = for {
-//      event <- eventRepository.insert(Event(eventType = "create", payload = Json.toJson(request).toString()))
-//    }
-//      yield event
-//
-//    canProceed.flatMap(e => {
-//      e match {
-//        case e if(e.id.isDefined) => onSuccess.apply()
-//        case _ => throw BadRequest("Request failed. Username is taken?")
-//      }
-//    })
-//  }
 }
