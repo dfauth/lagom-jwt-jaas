@@ -11,6 +11,17 @@ import static automat.Functions.*;
 
 public class Configurations {
 
+    public static Function<AutomationContext, Automat> basicClient = c -> c.onRequest().
+            apply(authHandler).
+            onResponse().
+            apply(
+                    forHttpCode(401).
+                            use(
+                                    loginHandler(TestResource$.MODULE$.AUTH())
+                                            .andThen(storeToken)
+                            ) // use
+            );// apply;
+
     public static Function<AutomationContext, Automat> basicClientWithWebSocket = c -> c.onRequest().
             apply(authHandler).
             onResponse().

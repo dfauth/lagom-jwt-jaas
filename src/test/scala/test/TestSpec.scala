@@ -62,7 +62,7 @@ class TestSpec extends FlatSpec with Matchers with Logging {
   "read back all users " should "work" in {
 
     val body = given.environment(LOCAL).identity(WATCHERBGYPSY).
-      configureAs(Configurations.basicClientWithWebSocket).logInstructions(new Consumer[RequestLogSpecification](){
+      configureAs(Configurations.basicClient).logInstructions(new Consumer[RequestLogSpecification](){
       override def accept(t: RequestLogSpecification): Unit = {
         t.all()
       }
@@ -84,7 +84,7 @@ class TestSpec extends FlatSpec with Matchers with Logging {
   "read back all roles " should "work" in {
 
     val body = given.environment(LOCAL).identity(WATCHERBGYPSY).
-      configureAs(Configurations.basicClientWithWebSocket).logInstructions(new Consumer[RequestLogSpecification](){
+      configureAs(Configurations.basicClient).logInstructions(new Consumer[RequestLogSpecification](){
       override def accept(t: RequestLogSpecification): Unit = {
         t.all()
       }
@@ -106,13 +106,14 @@ class TestSpec extends FlatSpec with Matchers with Logging {
   "authentication " should "work" in {
 
     val body = given.environment(LOCAL).identity(WATCHERBGYPSY).
-      configureAs(Configurations.basicClientWithWebSocket).logInstructions(new Consumer[RequestLogSpecification](){
+      configureAs(Configurations.basicClient)
+      .logInstructions(new Consumer[RequestLogSpecification](){
       override def accept(t: RequestLogSpecification): Unit = {
         t.all()
       }
     },new Consumer[ResponseLogSpecification](){
       override def accept(t: ResponseLogSpecification): Unit = {
-        t.all()
+        t.body()
       }
     }).
       get(INFO).getBody.peek()

@@ -9,6 +9,7 @@ import com.lightbend.lagom.scaladsl.api.transport.NotFound
 import com.lightbend.lagom.scaladsl.persistence.{PersistentEntityRef, PersistentEntityRegistry}
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import log.Logging
+import util.PasswordHashing.hashPassword
 import api.authentication.AuthenticationServiceComposition.authenticated
 import api.authentication.{JwtTokenUtil, Token, TokenContent}
 
@@ -24,7 +25,7 @@ class UserServiceImpl(
       ServerServiceCall {
         request => {
           val ref:PersistentEntityRef[UserCommand] = persistentEntityRegistry.refFor[UserEntity](request.username)
-          ref.ask(new CreateUserCommand(request.firstName, request.lastName, request.username, request.password, request.email))
+          ref.ask(new CreateUserCommand(request.firstName, request.lastName, request.username, request.email, request.password))
         } // request
       } // ServerServiceCall
     } // authenticated
@@ -91,7 +92,7 @@ class UserServiceImpl(
     ServerServiceCall {
       request => {
         logger.info("request.username: "+request.username)
-        userRepository.runFindByCredentials(request.username, request.password).map[Token] {
+        userRepository.runFindByCredentials(request.username, hashPassword(request.password)).map[Token] {
           case Some(u) => JwtTokenUtil.generateTokens(TokenContent(username = u.email))
           case None => {
             logger.info("Oops. username "+request.username+" not found with that password")
