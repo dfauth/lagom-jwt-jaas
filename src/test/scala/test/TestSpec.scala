@@ -8,34 +8,40 @@ import org.apache.logging.log4j.scala.Logging
 import org.hamcrest.Matchers.isOneOf
 import org.scalatest.{FlatSpec, Matchers}
 import test.TestEnvironment.LOCAL
-import test.TestIdentity.WATCHERBGYPSY
+import test.TestIdentity.{SUPERUSER, WATCHERBGYPSY}
 import test.TestResource.{INFO, ROLE, USER}
 import test.TestRole.TESTROLE
 
 class TestSpec extends FlatSpec with Matchers with Logging {
 
+  def asConsumer[T](f: Function[T,_]) = {
+    new Consumer[T](){
+      override def accept(t: T): Unit = {f(t)}
+    };
+  }
+
   "create an account" should "work" in {
 
-    val user = new User(firstName = "Watcher",
-      lastName = "BGypsy",
-      email = WATCHERBGYPSY.username,
-      username = WATCHERBGYPSY.username,
-      password = WATCHERBGYPSY.password)
+    val response = given.environment(LOCAL)
+      .identity(SUPERUSER)
+      .configureAs(Configurations.basicClient)
+      .logInstructions(asConsumer((l:RequestLogSpecification) => l.all()),asConsumer((l:ResponseLogSpecification) => l.all()))
+      .post(ROLE,
+        new Role(roleName = "testRole",
+          description = "TestRoleDescription") // post
+      ) // post
+//      .post(USER,
+//        new User(firstName = "Watcher",
+//          lastName = "BGypsy",
+//          email = WATCHERBGYPSY.username,
+//          username = WATCHERBGYPSY.username,
+//          password = WATCHERBGYPSY.password)
+//      ) // post
 
-    given.environment(LOCAL).logInstructions(new Consumer[RequestLogSpecification](){
-      override def accept(t: RequestLogSpecification): Unit = {
-        t.all()
-      }
-    },new Consumer[ResponseLogSpecification](){
-      override def accept(t: ResponseLogSpecification): Unit = {
-        t.all()
-      }
-    }).
-
-      post(USER, user).
-
-      then.
-      statusCode(isOneOf[Integer](200, 400))
+//    val user = new ObjectMapper().readValue(response.asInputStream(), classOf[User])
+      .then
+//      .as(classOf[User])
+      .statusCode(isOneOf[Integer](200, 400))
   }
 
   "create a role" should "work" in {
@@ -43,15 +49,8 @@ class TestSpec extends FlatSpec with Matchers with Logging {
     val role = new Role(roleName = TESTROLE.roleName,
       description = TESTROLE.description)
 
-    given.environment(LOCAL).logInstructions(new Consumer[RequestLogSpecification](){
-      override def accept(t: RequestLogSpecification): Unit = {
-        t.all()
-      }
-    },new Consumer[ResponseLogSpecification](){
-      override def accept(t: ResponseLogSpecification): Unit = {
-        t.all()
-      }
-    }).
+    given.environment(LOCAL).
+      //logInstructions(t => t.all(), t => t.all()).
 
       post(ROLE,role).
 
@@ -62,15 +61,8 @@ class TestSpec extends FlatSpec with Matchers with Logging {
   "read back all users " should "work" in {
 
     val body = given.environment(LOCAL).identity(WATCHERBGYPSY).
-      configureAs(Configurations.basicClient).logInstructions(new Consumer[RequestLogSpecification](){
-      override def accept(t: RequestLogSpecification): Unit = {
-        t.all()
-      }
-    },new Consumer[ResponseLogSpecification](){
-      override def accept(t: ResponseLogSpecification): Unit = {
-        t.all()
-      }
-    }).
+      configureAs(Configurations.basicClient).
+      //logInstructions(t => t.all(), t => t.all()).
       get(USER.queryString("username", WATCHERBGYPSY.username)).getBody.peek()
 
       logger.info("response: "+body)
@@ -84,15 +76,8 @@ class TestSpec extends FlatSpec with Matchers with Logging {
   "read back all roles " should "work" in {
 
     val body = given.environment(LOCAL).identity(WATCHERBGYPSY).
-      configureAs(Configurations.basicClient).logInstructions(new Consumer[RequestLogSpecification](){
-      override def accept(t: RequestLogSpecification): Unit = {
-        t.all()
-      }
-    },new Consumer[ResponseLogSpecification](){
-      override def accept(t: ResponseLogSpecification): Unit = {
-        t.all()
-      }
-    }).
+      configureAs(Configurations.basicClient).
+      //logInstructions(t => t.all(), t => t.all()).
       get(ROLE).getBody.peek()
 
       logger.info("response: "+body)
@@ -106,16 +91,8 @@ class TestSpec extends FlatSpec with Matchers with Logging {
   "authentication " should "work" in {
 
     val body = given.environment(LOCAL).identity(WATCHERBGYPSY).
-      configureAs(Configurations.basicClient)
-      .logInstructions(new Consumer[RequestLogSpecification](){
-      override def accept(t: RequestLogSpecification): Unit = {
-        t.all()
-      }
-    },new Consumer[ResponseLogSpecification](){
-      override def accept(t: ResponseLogSpecification): Unit = {
-        t.body()
-      }
-    }).
+      configureAs(Configurations.basicClient).
+      //logInstructions(t => t.all(), t => t.all()).
       get(INFO).getBody.peek()
 
       logger.info("response: "+body)

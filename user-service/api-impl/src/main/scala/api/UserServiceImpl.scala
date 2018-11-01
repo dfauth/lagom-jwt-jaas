@@ -1,8 +1,9 @@
 package api
 
-import akka.{Done, NotUsed}
+import api.authentication.AuthenticationServiceComposition.authenticated
+import api.authentication.{JwtTokenUtil, Token, TokenContent}
 import api.repo.UserRepository
-import api.request.{CreateRole, CreateUser, UserCredentials}
+import api.request.UserCredentials
 import api.response.{Role, User}
 import com.lightbend.lagom.scaladsl.api.ServiceCall
 import com.lightbend.lagom.scaladsl.api.transport.NotFound
@@ -10,8 +11,6 @@ import com.lightbend.lagom.scaladsl.persistence.{PersistentEntityRef, Persistent
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import log.Logging
 import util.PasswordHashing.hashPassword
-import api.authentication.AuthenticationServiceComposition.authenticated
-import api.authentication.{JwtTokenUtil, Token, TokenContent}
 
 import scala.concurrent.ExecutionContext
 
@@ -20,8 +19,7 @@ class UserServiceImpl(
                        userRepository: UserRepository
                      )(implicit ec: ExecutionContext) extends UserService with Logging {
 
-   override def createUser(): ServiceCall[CreateUser, Done] = {
-//   override def createUser() = authenticated { (tokenContent, _) =>
+   override def createUser() = authenticated { (tokenContent, _) =>
       ServerServiceCall {
         request => {
           val ref:PersistentEntityRef[UserCommand] = persistentEntityRegistry.refFor[UserEntity](request.username)
@@ -30,8 +28,7 @@ class UserServiceImpl(
       } // ServerServiceCall
     } // authenticated
 
-   override def createRole(): ServiceCall[CreateRole, Done] = {
-//   override def createRole() = authenticated { (tokenContent, _) =>
+   override def createRole() = authenticated { (tokenContent, _) =>
       ServerServiceCall {
         request => {
           val ref:PersistentEntityRef[UserCommand] = persistentEntityRegistry.refFor[UserEntity](request.roleName)
@@ -40,7 +37,7 @@ class UserServiceImpl(
       } // ServerServiceCall
     } // authenticated
 
-  override def getUsers(): ServiceCall[NotUsed, Set[User]] =  { //???
+  override def getUsers() = authenticated { (tokenContent, _) =>
     ServerServiceCall {
       request => {
         userRepository.runFindUsers.map[Set[User]](
@@ -54,7 +51,7 @@ class UserServiceImpl(
 
   override def associateRoles(): ServiceCall[Set[Role], Boolean] = ???
 
-  override def getUser(id: Int): ServiceCall[NotUsed, User] = {
+  override def getUser(id: Int) = authenticated { (tokenContent, _) =>
     ServerServiceCall {
       request => {
         userRepository.runFindUser(id).map[User] {
@@ -65,7 +62,7 @@ class UserServiceImpl(
     }
   }
 
-  override def getUserByUsername(userName:String): ServiceCall[NotUsed, User] = {
+  override def getUserByUsername(userName:String) = authenticated { (tokenContent, _) =>
     ServerServiceCall {
       request => {
         userRepository.runFindByEmail(userName).map[User] {
@@ -76,7 +73,7 @@ class UserServiceImpl(
     }
   }
 
-  override def getRoles(): ServiceCall[NotUsed, Set[Role]] = {
+  override def getRoles() = authenticated { (tokenContent, _) =>
     ServerServiceCall {
       request => {
         userRepository.runFindRoles.map[Set[Role]](
