@@ -14,6 +14,7 @@ trait UserService extends Service {
   def createRole(): ServiceCall[CreateRole, Done]
   def getUser(id:Int): ServiceCall[NotUsed, User]
   def getUserByUsername(username:String): ServiceCall[NotUsed, User]
+  def getRoleByRolename(roleName:String): ServiceCall[NotUsed, Role]
   def getUsers(): ServiceCall[NotUsed, Set[User]]
   def getRoles(): ServiceCall[NotUsed, Set[Role]]
   def associateRoles(): ServiceCall[Set[Role], Boolean]
@@ -22,17 +23,18 @@ trait UserService extends Service {
     import Service._
 
     named("user-service").withCalls(
-      restCall(Method.GET, "/api/user/info", getCurrentUser _),
-      restCall(Method.POST, "/api/user/authenticate", authenticate _),
-      restCall(Method.GET, "/api/user", getUsers _),
-      restCall(Method.GET, "/api/user/:id", getUser _),
-      restCall(Method.GET, "/api/user/?username", getUserByUsername _),
-      restCall(Method.GET, "/api/user/roles", getRoles _),
-      restCall(Method.POST, "/api/user", createUser _),
-      restCall(Method.POST, "/api/user/roles", createRole _),
-      restCall(Method.GET, "/api/user/:id/roles", getRoles _),
-      restCall(Method.POST, "/api/user/:id/roles", associateRoles _),
-      restCall(Method.DELETE, "/api/user/:id/roles", associateRoles _)
+      restCall(Method.GET, "/api/user-service/info", getCurrentUser _),
+      restCall(Method.POST, "/api/user-service/authenticate", authenticate _),
+      restCall(Method.GET, "/api/user-service/users", getUsers _),
+      restCall(Method.POST, "/api/user-service/users", createUser _),
+      restCall(Method.GET, "/api/user-service/users/:id", getUser _),
+      restCall(Method.GET, "/api/user-service/users?username", getUserByUsername _),
+      restCall(Method.GET, "/api/user-service/roles", getRoles _),
+      restCall(Method.POST, "/api/user-service/roles", createRole _),
+      restCall(Method.GET, "/api/user-service/roles?rolename", getRoleByRolename _),
+      restCall(Method.GET, "/api/user-service/roles/:id", getRoles _),
+//      restCall(Method.POST, "/api/user-service/:id/roles", associateRoles _),
+//      restCall(Method.DELETE, "/api/user-service/:id/roles", associateRoles _)
     ).withAutoAcl(true)
   }
 

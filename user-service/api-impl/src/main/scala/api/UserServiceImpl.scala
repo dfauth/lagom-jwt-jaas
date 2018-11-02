@@ -32,7 +32,7 @@ class UserServiceImpl(
       ServerServiceCall {
         request => {
           val ref:PersistentEntityRef[UserCommand] = persistentEntityRegistry.refFor[UserEntity](request.roleName)
-          ref.ask(new CreateRoleCommand(request.roleName, request.description))
+          ref.ask(new CreateRoleCommand(request.roleName, request.description.getOrElse("")))
         } // request
       } // ServerServiceCall
     } // authenticated
@@ -73,12 +73,23 @@ class UserServiceImpl(
     }
   }
 
+  override def getRoleByRolename(roleName:String) = authenticated { (tokenContent, _) =>
+    ServerServiceCall {
+      request => {
+        userRepository.runFindRoleByName(roleName).map[Role] {
+          case Some(u) => new Role(u.id, u.roleName, u.description)
+          case None => throw NotFound(s"no role with rolename ${roleName} found")
+        }
+      }
+    }
+  }
+
   override def getRoles() = authenticated { (tokenContent, _) =>
     ServerServiceCall {
       request => {
         userRepository.runFindRoles.map[Set[Role]](
           _.foldLeft(Set[Role]())((a, r) => {
-            a + new Role(r.id, r.roleName, r.description.getOrElse(""))
+            a + new Role(r.id, r.roleName, r.description)
           }) // foldLeft
         ) // map
       }

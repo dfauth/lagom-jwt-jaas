@@ -7,12 +7,11 @@ import automat.MapBuilder.Value
 import automat.{MapBuilder, Resource};
 
 object TestResource {
-  val AUTH = TestResource("/api/user/authenticate")
-  val IDENTITY = TestResource("/api/state/identity")
-  val USER = TestResource("/api/user")
-  val ROLE = TestResource("/api/user/roles")
-  val INFO = TestResource("/api/user/info")
-  val SUBSCRIPTION = TestResource("/api/stream")
+  val AUTH = TestResource("/api/user-service/authenticate")
+  val INFO = TestResource("/api/user-service/info")
+  val USER = TestResource("/api/user-service/users")
+  val ROLE = TestResource("/api/user-service/roles")
+  val SUBSCRIPTION = TestResource("/api/user-service/stream")
 }
 
 case class TestResource(path:String, builder:MapBuilder[String,_] = new Value(Collections.emptyMap())) extends Resource {

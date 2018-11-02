@@ -93,7 +93,7 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
     try {
       countRoles
     } catch {
-      case t => {
+      case t:Throwable => {
         logger.info(s"probe encountered a throwable: ${t}")
         throw t
       }
@@ -151,8 +151,14 @@ class UserRepository(val profile: JdbcProfile, db:JdbcBackend#Database)
   def findByEmail(email:String) =
     (for (u <- users if u.email === email) yield u).result.headOption
 
+  def findRoleByName(roleName:String) =
+    (for (r <- roles if r.roleName === roleName) yield r).result.headOption
+
   def runFindByEmail(email:String) =
     db.run(findByEmail(email))
+
+  def runFindRoleByName(roleName:String) =
+    db.run(findRoleByName(roleName))
 
   def find(role:Role) =
     db.run((for (r <- roles if r.id === role.id) yield r).result.headOption)

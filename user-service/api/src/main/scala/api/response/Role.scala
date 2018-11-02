@@ -8,7 +8,7 @@ import play.api.libs.json.{Format, Json}
 case class Role (
   id: Int,
   roleName: String,
-  description: String
+  description: Option[String]
 )extends WithRoleFields
 
 object Role {
@@ -16,7 +16,6 @@ object Role {
 
   implicit val roleValidator = validator[Role] { r =>
     r.roleName as notEmptyKey("roleName") is notEmpty
-    r.description as notEmptyKey("description") is notEmpty
   }
 }
 

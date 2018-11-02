@@ -3,6 +3,7 @@ package test
 import java.util.function.Consumer
 
 import automat.Automat.given
+import automat.Functions.asListOf
 import io.restassured.specification.{RequestLogSpecification, ResponseLogSpecification}
 import org.apache.logging.log4j.scala.Logging
 import org.hamcrest.Matchers.isOneOf
@@ -11,6 +12,7 @@ import test.TestEnvironment.LOCAL
 import test.TestIdentity.{SUPERUSER, WATCHERBGYPSY}
 import test.TestResource.{INFO, ROLE, USER}
 import test.TestRole.TESTROLE
+import test.User.Role
 
 class TestSpec extends FlatSpec with Matchers with Logging {
 
@@ -22,13 +24,13 @@ class TestSpec extends FlatSpec with Matchers with Logging {
 
   "create an account" should "work" in {
 
-    val response = given.environment(LOCAL)
+    val ctx = given.environment(LOCAL)
       .identity(SUPERUSER)
       .configureAs(Configurations.basicClient)
       .logInstructions(asConsumer((l:RequestLogSpecification) => l.all()),asConsumer((l:ResponseLogSpecification) => l.all()))
-      .post(ROLE,
-        new Role(roleName = "testRole",
-          description = "TestRoleDescription") // post
+
+      ctx.post(ROLE,
+        new Role("testRole","TestRoleDescription") // post
       ) // post
 //      .post(USER,
 //        new User(firstName = "Watcher",
@@ -38,16 +40,18 @@ class TestSpec extends FlatSpec with Matchers with Logging {
 //          password = WATCHERBGYPSY.password)
 //      ) // post
 
-//    val user = new ObjectMapper().readValue(response.asInputStream(), classOf[User])
-      .then
-//      .as(classOf[User])
-      .statusCode(isOneOf[Integer](200, 400))
+
+//    val response = ctx.get(ROLE.queryString("roleName", "testRole"))
+    val response = ctx.get(ROLE)
+    val roles = asListOf(classOf[Role])(response)
+    logger.info("roles: "+roles)
+      response.then
+      .statusCode(200)
   }
 
   "create a role" should "work" in {
 
-    val role = new Role(roleName = TESTROLE.roleName,
-      description = TESTROLE.description)
+    val role = new Role(TESTROLE.roleName, TESTROLE.description)
 
     given.environment(LOCAL).
       //logInstructions(t => t.all(), t => t.all()).

@@ -9,5 +9,5 @@ trait WithUserFields {
 
 trait WithRoleFields {
   val roleName: String
-  val description: String
+  val description: Option[String]
 }

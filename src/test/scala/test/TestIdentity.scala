@@ -1,6 +1,7 @@
 package test
 
 import automat.Identity
+import test.User.Role
 
 object TestIdentity {
   val WATCHERBGYPSY = new TestIdentity("watcherbgypsy@gmail.com", "password")
