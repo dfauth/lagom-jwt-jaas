@@ -47,7 +47,7 @@ public class ResourceHierarchy<K,V> {
         }
     }
 
-    public ResourceHierarchy<K, V> findNearest(Iterable<K> path, Consumer<V> consumer) {
+    public ResourceHierarchy<K, V> findNearest(Iterable<K> path, Consumer<Resource<K,V>> consumer) {
         return findNearest(path.iterator(), consumer);
     }
 
@@ -59,14 +59,13 @@ public class ResourceHierarchy<K,V> {
         return find(path.iterator()).map(h -> h.resource()).orElse(Optional.empty());
     }
 
-    private ResourceHierarchy<K,V> findNearest(Iterator<K> it, Consumer<V> consumer) {
+    private ResourceHierarchy<K,V> findNearest(Iterator<K> it, Consumer<Resource<K,V>> consumer) {
         if(!it.hasNext()) {
-            resource().ifPresent(r -> consumer.accept(r.payload));
             return this;
         } else {
             Optional<ResourceHierarchy<K, V>> next = find(it.next());
             return next.map(h -> {
-                h.resource().ifPresent(r -> consumer.accept(r.payload));
+                h.resource().ifPresent(consumer);
                 return h.findNearest(it, consumer);
             }).orElseGet(() ->this);
         }
@@ -105,7 +104,7 @@ public class ResourceHierarchy<K,V> {
 
     public Iterable<V> findAllInPath(Iterable<K> path) {
         Deque<V> stack = new ArrayDeque();
-        findNearest(path, r -> stack.push(r));
+        findNearest(path, r -> stack.push(r.payload));
         return stack;
     }
 }
