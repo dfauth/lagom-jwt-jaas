@@ -44,7 +44,7 @@ class BasePolicyService(factories:Map[String, PolicyService.Factory] = Map.empty
   }
 
   def permit[T](name:String, f: PolicyService => T): T = {
-    permit(name, f, noop)
+    permit(name, f, builtIn)
   }
 
   def permit[T](name:String, f: PolicyService => T, ifNone:String => PolicyService): T = {
@@ -90,6 +90,47 @@ class BasePolicyService(factories:Map[String, PolicyService.Factory] = Map.empty
     }
   }
 
+  def builtIn(name: String): PolicyService = {
+    new PolicyService(){
+      override def add(grant: Directive): Unit = ???
+
+      override def revoke(grant: Directive): Unit = ???
+
+      override def permit(t: (String, String, String), p: Principal): Boolean = {
+        p match {
+          case s:SuperUserRole => {
+            logger.warn(s"testing permit ${t} ${p} on a builtIn policy service => returns true")
+            true
+          }
+          case _ => {
+            logger.warn(s"testing permit ${t} ${p} on a builtIn policy service => returns false")
+            false
+          }
+        }
+      }
+
+      override def permittedActions(permission: String, resource: String, p: Set[Principal]): Set[String] = {
+        logger.warn(s"getting permitted actions ${permission} ${resource} ${p} on a builtIn policy service => return empty set")
+        Set.empty[String]
+      }
+
+      override def permit(permission: BasePermission, principal: Principal): Boolean = {
+        principal match {
+          case s:SuperUserRole => {
+            logger.warn(s"testing permit ${permission} ${principal} on a builtIn policy service => returns true")
+            true
+          }
+          case _ => {
+            logger.warn(s"testing permit ${permission} ${principal} on a builtIn policy service => returns false")
+            false
+          }
+        }
+      }
+    }
+  }
+
 }
+
+case class SuperUserRole() extends SystemPrincipal("role", "auth", "superuser")
 
 

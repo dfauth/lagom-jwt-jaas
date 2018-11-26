@@ -1,15 +1,12 @@
 package thingy
 
-import java.security._
-
 import javax.security.auth.Subject
 import org.apache.logging.log4j.scala.Logging
 import org.scalatest._
 import play.api.libs.json.Json
-import thingy.permissions.{BasePermission, RestPermission}
+import thingy.permissions.{BasePermission, RestPermission, authorize}
 
-import thingy.permissions.authorize
-import scala.util.{Failure, Success, Try}
+import scala.util.Success
 
 class GrantSpec extends FlatSpec with Matchers with Logging {
 
@@ -345,7 +342,21 @@ class GrantSpec extends FlatSpec with Matchers with Logging {
 
     var permission = new RestPermission("/api", "GET")
     authorize(permission, subject, f) should be (Success(true))
+  }
 
+  "a default role superuser " should "exist by default" in {
+
+    val policyService = new BasePolicyService()
+
+    val bob = new UserPrincipal("bob")
+    val admin = SuperUserRole()
+
+    val subject = new Subject()
+    subject.getPrincipals().add(bob)
+    subject.getPrincipals().add(admin)
+
+    var permission = new RestPermission("/api", "GET")
+    authorize(permission, subject, ()=>3.69) should be (Success(3.69))
   }
 
   def f() = {

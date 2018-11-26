@@ -2,6 +2,7 @@ package api
 
 import api.authentication.AuthenticationServiceComposition.authenticated
 import api.authentication.{JwtTokenUtil, Token, TokenContent}
+import api.permissions.UserServicePermission
 import api.repo.UserRepository
 import api.request.UserCredentials
 import api.response.{Role, User}
@@ -10,9 +11,10 @@ import com.lightbend.lagom.scaladsl.api.transport.NotFound
 import com.lightbend.lagom.scaladsl.persistence.{PersistentEntityRef, PersistentEntityRegistry}
 import com.lightbend.lagom.scaladsl.server.ServerServiceCall
 import log.Logging
+import thingy.permissions._
 import util.PasswordHashing.hashPassword
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 class UserServiceImpl(
                        persistentEntityRegistry: PersistentEntityRegistry,
@@ -39,11 +41,11 @@ class UserServiceImpl(
 
   override def getUsers() = authenticated { (tokenContent, _) =>
     ServerServiceCall {
-      request => {
+      request => authorize[Future[Set[User]]](UserServicePermission(actions = "find"),tokenContent) {
         userRepository.runFindUsers.map[Set[User]](
           _.foldLeft(Set[User]())((a,u)=>{
-          a + new User(u.id, u.firstName.getOrElse(""), u.lastName.getOrElse(""), u.email, u.email)
-        }) // foldLeft
+            a + new User(u.id, u.firstName.getOrElse(""), u.lastName.getOrElse(""), u.email, u.email)
+          }) // foldLeft
         ) // map
       }
     }

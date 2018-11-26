@@ -22,10 +22,14 @@ val h2 = "com.h2database" % "h2" % "latest.integration"
 val slick = "com.typesafe.slick" %% "slick" % "3.2.3"
 val automat = "automat" %% "automat" % "0.1"
 val logback = "ch.qos.logback" % "logback-classic" % "latest.integration"
+val testng = "org.testng" % "testng" % "latest.integration"
+val slf4j = "org.slf4j" % "slf4j-api" % "latest.integration"
+val slf4j_log4j = "org.slf4j" % "slf4j-log4j12" % "latest.integration"
+val jackson = "com.fasterxml.jackson.core" % "jackson-databind" % "latest.integration"
 
 
 lazy val `lagom-jwt-jaas` = (project in file("."))
-  .aggregate(`auth`, `user-service`)
+  .aggregate(`auth`, `authzn`,`user-service`)
 //  .aggregate(`auth`, `auth-service`, `session-service`, `user-service`)
   .settings(
     libraryDependencies ++= Seq(
@@ -49,7 +53,18 @@ lazy val `auth` = (project in file("auth"))
       accord,
       jwt,
       play,
-      logback
+      logback,
+      testng
+    )
+  )
+
+lazy val `authzn` = (project in file("authzn"))
+  .settings(
+    libraryDependencies ++= Seq(
+      slf4j,
+      slf4j_log4j,
+      testng,
+      jackson
     )
   )
 
