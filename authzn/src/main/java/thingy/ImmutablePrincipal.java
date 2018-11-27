@@ -17,7 +17,7 @@ public class ImmutablePrincipal implements Principal {
     }
 
     @Override
-    public PrincipalType getType() {
+    public PrincipalType getPrincipalType() {
         return principalType;
     }
 
@@ -28,6 +28,31 @@ public class ImmutablePrincipal implements Principal {
 
     @Override
     public String getName() {
-        return String.format("{0}:{1}:{2}",getType().name(),getSource(),name);
+        return name;
+    }
+
+    @Override
+    public int hashCode() {
+        return principalType.hashCode() | source.hashCode() | name.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if(obj == null) {
+            return false;
+        }
+        if(obj == this) {
+            return true;
+        }
+        if(obj instanceof ImmutablePrincipal) {
+            ImmutablePrincipal other = (ImmutablePrincipal) obj;
+            return principalType.equals(other.principalType) && source.equals(other.source) && name.equals(other.name);
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("ImmutablePrincipal(%s,%s,%s)",principalType,source,name);
     }
 }

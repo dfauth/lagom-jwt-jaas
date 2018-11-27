@@ -1,7 +1,7 @@
 package thingy;
 
 public interface Principal extends java.security.Principal {
-    PrincipalType getType();
+    PrincipalType getPrincipalType();
     String getSource();
     String getName();
 }

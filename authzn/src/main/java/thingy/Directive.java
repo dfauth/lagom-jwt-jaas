@@ -1,6 +1,5 @@
 package thingy;
 
-import java.security.Principal;
 import java.util.Collections;
 import java.util.Set;
 
@@ -8,25 +7,25 @@ import static thingy.AuthorizationAction.GRANT;
 
 
 public class Directive {
-    private final Set<Principal> principals;
+    private final Set<ImmutablePrincipal> principals;
     private final String domain;
     private final String actions;
     private final String resource;
     private final AuthorizationAction authznAction;
 
-    public Directive(String domain, Principal principal) {
+    public Directive(String domain, ImmutablePrincipal principal) {
         this(domain, Collections.singleton(principal), "*", "*", GRANT);
     }
 
-    public Directive(String domain, Principal principal, String resource) {
+    public Directive(String domain, ImmutablePrincipal principal, String resource) {
         this(domain, Collections.singleton(principal), resource, "*", GRANT);
     }
 
-    public Directive(String domain, Principal principal, String resource, String actions) {
+    public Directive(String domain, ImmutablePrincipal principal, String resource, String actions) {
         this(domain, Collections.singleton(principal), resource, actions, GRANT);
     }
 
-    public Directive(String domain, Set<Principal> principals, String resource, String actions, AuthorizationAction authznAction) {
+    public Directive(String domain, Set<ImmutablePrincipal> principals, String resource, String actions, AuthorizationAction authznAction) {
         this.domain = domain;
         this.principals = principals;
         this.resource = resource;
@@ -34,7 +33,7 @@ public class Directive {
         this.authznAction = authznAction;
     }
 
-    public Set<Principal> getPrincipals() {
+    public Set<ImmutablePrincipal> getPrincipals() {
         return principals;
     }
 

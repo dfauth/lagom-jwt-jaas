@@ -1,55 +1,34 @@
 package thingy;
 
-import java.security.Principal;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-public class DirectiveBuilder {
+public class DirectiveBuilder implements Builder<Directive> {
 
     private AuthorizationAction authznAction;
-    private Set<Principal> principals;
+    private Set<ImmutablePrincipalBuilder> principals;
     private String domain;
     private String actions;
     private String resource;
 
     public Directive build() {
-        return new Directive(getDomain(), getPrincipals(), getResource(), getActions(), getAuthznAction());
-
-    }
-
-    public AuthorizationAction getAuthznAction() {
-        return authznAction;
+        return new Directive(domain, principals.stream().map(b -> b.build()).collect(Collectors.toSet()), resource, actions, authznAction);
     }
 
     public void setAuthznAction(AuthorizationAction authznAction) {
         this.authznAction = authznAction;
     }
 
-    public Set<Principal> getPrincipals() {
-        return principals;
-    }
-
-    public void setPrincipals(Set<Principal> principals) {
+    public void setPrincipals(Set<ImmutablePrincipalBuilder> principals) {
         this.principals = principals;
-    }
-
-    public String getDomain() {
-        return domain;
     }
 
     public void setDomain(String domain) {
         this.domain = domain;
     }
 
-    public String getActions() {
-        return actions;
-    }
-
     public void setActions(String actions) {
         this.actions = actions;
-    }
-
-    public String getResource() {
-        return resource;
     }
 
     public void setResource(String resource) {
