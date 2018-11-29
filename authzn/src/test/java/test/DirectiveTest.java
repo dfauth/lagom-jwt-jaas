@@ -23,12 +23,11 @@ public class DirectiveTest {
     public void testIt() {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            String value = mapper.writeValueAsString(new Directive("test", USER.of("fred")));
+            String value = mapper.writeValueAsString(new Directive(USER.of("fred")));
             logger.info("directive: "+value);
             DirectiveBuilder builder = mapper.readValue(value, DirectiveBuilder.class);
             logger.info("builder: "+builder);
             Directive directive = builder.build();
-            assertEquals(directive.getDomain(), "test");
             assertEquals(directive.getResource(), "*");
             assertTrue(directive.getPrincipals().contains(USER.of("fred")));
         } catch (JsonProcessingException e) {

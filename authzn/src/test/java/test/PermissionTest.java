@@ -6,10 +6,13 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import thingy.*;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 
 import static org.testng.Assert.assertTrue;
+import static thingy.AuthorizationAction.DENY;
 import static thingy.PrincipalType.USER;
 
 
@@ -34,20 +37,19 @@ public class PermissionTest {
     public void testPolicy() {
         String domain = "domain";
         ImmutablePrincipal fred = USER.of("fred");
-        Directive directive = new Directive(domain, fred);
+        Directive directive = new Directive(fred);
         AuthorizationPermitter policy = (subject, permission) -> subject.getPrincipals().stream().map(p -> directive.permits(p, permission)).
-                reduce(Optional.empty(), (o1,o2) -> AuthorizationAction.compose(o1,o2));
-                //filter(o -> o.isPresent()).findFirst().orElse(Optional.of(DENY));
-        Optional<AuthorizationAction> authorizationAction = policy.permit(new ImmutableSubject(fred), new RolePermission(domain));
-        assertTrue(authorizationAction.isPresent());
-        assertTrue(authorizationAction.get().isAllowed());
+                reduce(Optional.empty(), (o1,o2) -> AuthorizationAction.compose(o1,o2)).orElse(DENY);
+        AuthorizationAction authorizationAction = policy.permit(new ImmutableSubject(fred), new RolePermission(domain));
+        assertTrue(authorizationAction.isAllowed());
     }
 
     @Test
     public void testActions() {
 
+        Action.Parser<TestAction> parser = Action.Actions.from(TestAction.class).parser();
         {
-            Set actions = TestAction.parser().parse("").actions();
+            Set actions = parser.parseActions("");
             assertTrue(actions.isEmpty());
             assertTrue(actions.size() == 0);
             Assert.assertFalse(actions.contains(TestAction.READ));
@@ -56,7 +58,7 @@ public class PermissionTest {
         }
 
         {
-            Set actions = TestAction.parser().parse("read").actions();
+            Set actions = parser.parseActions("read");
             Assert.assertFalse(actions.isEmpty());
             assertTrue(actions.size() == 1);
             assertTrue(actions.contains(TestAction.READ));
@@ -65,7 +67,7 @@ public class PermissionTest {
         }
 
         {
-            Set actions = TestAction.parser().parse("read, write, blah").actions();
+            Set actions = parser.parseActions("read, write, blah");
             Assert.assertFalse(actions.isEmpty());
             assertTrue(actions.size() == 2);
             assertTrue(actions.contains(TestAction.READ));
@@ -74,7 +76,7 @@ public class PermissionTest {
         }
 
         {
-            Set actions = TestAction.parser().parse("read, write, *, blah").actions();
+            Set actions = parser.parseActions("read, write, *, blah");
             Assert.assertFalse(actions.isEmpty());
             assertTrue(actions.size() == 3);
             assertTrue(actions.contains(TestAction.READ));
@@ -84,12 +86,7 @@ public class PermissionTest {
 
     }
 
-    static enum TestAction implements Action<TestAction> {
-
+    public static enum TestAction implements Action<TestAction> {
         READ, WRITE, EXECUTE;
-
-        public static Action.Parser<TestAction> parser() {
-            return new Parser(TestAction.values());
-        }
     }
 }

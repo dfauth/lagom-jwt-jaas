@@ -104,7 +104,7 @@ public class ResourceTest {
     }
 
     private DirectiveResource asResource(String resource) {
-        Directive directive = new Directive("domain", ROLE.of("user"), resource);
+        Directive directive = new Directive(ROLE.of("user"), resource);
         return new DirectiveResource(directive);
     }
 

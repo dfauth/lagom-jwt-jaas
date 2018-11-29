@@ -7,12 +7,11 @@ public class DirectiveBuilder implements Builder<Directive> {
 
     private AuthorizationAction authznAction;
     private Set<ImmutablePrincipalBuilder> principals;
-    private String domain;
     private String actions;
     private String resource;
 
     public Directive build() {
-        return new Directive(domain, principals.stream().map(b -> b.build()).collect(Collectors.toSet()), resource, actions, authznAction);
+        return new Directive(principals.stream().map(b -> b.build()).collect(Collectors.toSet()), resource, actions, authznAction);
     }
 
     public void setAuthznAction(AuthorizationAction authznAction) {
@@ -21,10 +20,6 @@ public class DirectiveBuilder implements Builder<Directive> {
 
     public void setPrincipals(Set<ImmutablePrincipalBuilder> principals) {
         this.principals = principals;
-    }
-
-    public void setDomain(String domain) {
-        this.domain = domain;
     }
 
     public void setActions(String actions) {

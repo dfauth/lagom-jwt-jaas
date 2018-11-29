@@ -104,7 +104,7 @@ public class ResourceHierarchy<K,V> {
 
     public Iterable<V> findAllInPath(Iterable<K> path) {
         Deque<V> stack = new ArrayDeque();
-        findNearest(path, r -> stack.push(r.payload));
+        findNearest(path, r -> r.payload.ifPresent(p -> stack.push(p)));
         return stack;
     }
 }

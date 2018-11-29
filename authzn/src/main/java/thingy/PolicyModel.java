@@ -10,7 +10,7 @@ public class PolicyModel {
 
     Map<String, PolicyModel> children = new HashMap<>();
 
-    public PolicyModel find(BasePermission permission) {
+    public PolicyModel find(ReadWritePermission permission) {
         Iterator<String> it = Arrays.asList(permission.getDomain().split("\\.")).iterator();
         return find(it);
     }
@@ -26,7 +26,7 @@ public class PolicyModel {
         return this;
     }
 
-    public boolean implies(BasePermission permission) {
+    public boolean implies(ReadWritePermission permission) {
         return false;
     }
 

@@ -8,7 +8,9 @@ import thingy.*;
 import java.util.Optional;
 
 import static org.testng.Assert.assertFalse;
+import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
+import static org.testng.AssertJUnit.assertNotNull;
 import static thingy.AuthorizationAction.ALLOW;
 import static thingy.AuthorizationAction.DENY;
 import static thingy.PrincipalType.ROLE;
@@ -22,14 +24,14 @@ public class FunctionalTest {
     @Test
     public void testIt() {
         PolicyFunction policy = new PolicyFunction();
-        Directive d = new Directive("admin", ROLE.of("role1"));
+        Directive d = new Directive(ROLE.of("role1"));
         policy.add(d);
         Subject subject = new ImmutableSubject(USER.of("fred"), ROLE.of("role1"));
-        BasePermission permission = new RolePermission("admin.*");
+        Permission permission = new RolePermission("admin");
 
-        PolicySubjectContext f = policy.apply(subject);
-        Boolean result = f.apply(permission);
-        assertFalse(result);
+        AuthorizationAction result = policy.permit(subject, permission);
+
+        assertFalse(result.isAllowed());
     }
 
     @Test
@@ -56,4 +58,43 @@ public class FunctionalTest {
         assertFalse(AuthorizationAction.compose(optionEmpty, optionEmpty).isPresent());
     }
 
+    @Test
+    public void testAuthorizationActionRunner() {
+        PriviledgedActionRunner authorizationAction = ALLOW;
+        TestToggle result = new TestToggle();
+        TestToggle toggle = authorizationAction.run(() -> result.toggle());
+        assertNotNull(toggle);
+        assertTrue(toggle.wasToggled());
+
+        toggle.reset();
+        TestToggle tmp = null;
+        try {
+            tmp = DENY.run(() -> result.toggle());
+        } catch (SecurityException e) {
+            logger.info(e.getMessage(), e);
+        }
+        assertNull(tmp);
+        assertNotNull(toggle);
+        assertFalse(toggle.wasToggled());
+    }
+
+    class TestToggle {
+
+        private boolean toggled = false;
+
+        public TestToggle toggle() {
+            toggled = true;
+            return this;
+        }
+
+        public boolean wasToggled() {
+            boolean tmp = toggled;
+            reset();
+            return tmp;
+        }
+
+        public void reset() {
+            toggled = false;
+        }
+    }
 }
