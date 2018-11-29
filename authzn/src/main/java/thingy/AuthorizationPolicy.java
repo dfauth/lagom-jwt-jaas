@@ -1,7 +1,7 @@
 package thingy;
 
 
-public interface AuthorizationPolicy extends AuthorizationPermitter, PriviledgedActionAuthorizer {
+public interface AuthorizationPolicy extends AuthorizationPermitter {
 
 }
 

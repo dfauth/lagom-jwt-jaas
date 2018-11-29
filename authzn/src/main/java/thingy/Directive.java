@@ -1,9 +1,10 @@
 package thingy;
 
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 
-import static thingy.AuthorizationAction.GRANT;
+import static thingy.AuthorizationAction.ALLOW;
 
 
 public class Directive {
@@ -14,15 +15,15 @@ public class Directive {
     private final AuthorizationAction authznAction;
 
     public Directive(String domain, ImmutablePrincipal principal) {
-        this(domain, Collections.singleton(principal), "*", "*", GRANT);
+        this(domain, Collections.singleton(principal), "*", "*", ALLOW);
     }
 
     public Directive(String domain, ImmutablePrincipal principal, String resource) {
-        this(domain, Collections.singleton(principal), resource, "*", GRANT);
+        this(domain, Collections.singleton(principal), resource, "*", ALLOW);
     }
 
     public Directive(String domain, ImmutablePrincipal principal, String resource, String actions) {
-        this(domain, Collections.singleton(principal), resource, actions, GRANT);
+        this(domain, Collections.singleton(principal), resource, actions, ALLOW);
     }
 
     public Directive(String domain, Set<ImmutablePrincipal> principals, String resource, String actions, AuthorizationAction authznAction) {
@@ -53,16 +54,16 @@ public class Directive {
         return authznAction;
     }
 
-    public boolean permits(thingy.Principal p, BasePermission permission) {
+    public Optional<AuthorizationAction> permits(thingy.Principal p, BasePermission permission) {
         if(permission.impliesDomain(domain)) {
             if(principals.contains(p)) {
                 if(resource.equalsIgnoreCase(permission.getResource())) {
                     if(permission.getActions().implies(actions)) {
-                        return authznAction.isAllowed();
+                        return Optional.of(authznAction);
                     }
                 }
             }
         }
-        return false;
+        return Optional.empty();
     }
 }

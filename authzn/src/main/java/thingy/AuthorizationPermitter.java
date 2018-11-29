@@ -1,5 +1,7 @@
 package thingy;
 
+import java.util.Optional;
+
 public interface AuthorizationPermitter {
-    boolean permit(Subject subject, BasePermission permission);
+    Optional<AuthorizationAction> permit(Subject subject, BasePermission permission);
 }
