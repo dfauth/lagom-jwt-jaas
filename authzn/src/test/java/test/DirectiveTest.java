@@ -28,7 +28,7 @@ public class DirectiveTest {
             DirectiveBuilder builder = mapper.readValue(value, DirectiveBuilder.class);
             logger.info("builder: "+builder);
             Directive directive = builder.build();
-            assertEquals(directive.getResource(), "*");
+            assertEquals(directive.getResource(), "/");
             assertTrue(directive.getPrincipals().contains(USER.of("fred")));
         } catch (JsonProcessingException e) {
             logger.error(e.getMessage(), e);
