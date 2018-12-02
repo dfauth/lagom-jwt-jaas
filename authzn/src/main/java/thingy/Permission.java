@@ -1,6 +1,6 @@
 package thingy;
 
-public abstract class Permission<E extends Enum<E>> {
+public abstract class Permission<E extends Enum<E> & Action<E>> {
 
     private final String resource;
     private E action;
@@ -25,7 +25,7 @@ public abstract class Permission<E extends Enum<E>> {
         return parser().parseAction(action).orElseThrow(()->new IllegalArgumentException("Oops. No action named "+action));
     }
 
-    protected abstract Action.Parser<E> parser();
+    protected abstract Actions.Parser<E> parser();
 
     public Resource getResource() {
         return new SimpleResource(resource);

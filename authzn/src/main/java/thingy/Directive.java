@@ -58,11 +58,11 @@ public class Directive {
     public ResourceAuthorizationContext forResource(Resource resource) {
         return new ResourceAuthorizationContext(){
             @Override
-            public <E extends Enum<E>> ActionResourceAuthorizationContext forAction(E action) {
+            public <F extends Enum<F> & Action<F>> ActionResourceAuthorizationContext forAction(F action) {
                 return principal -> {
                     if(new DirectiveResource(Directive.this).getIterablePath().equals(resource.getIterablePath())) {
                         if(principals.contains(principal)) {
-                            if(Action.Actions.from(action.getClass()).parser().parseActions(getActions()).contains(action)) {
+                            if(Actions.of(action.getDeclaringClass()).parser().parseActions(getActions()).contains(action)) {
                                 return Optional.ofNullable(getAuthznAction());
                             }
                         }
@@ -73,7 +73,7 @@ public class Directive {
         };
     }
 
-    public Optional<AuthorizationAction> permits(thingy.Principal p, Permission permission) {
+    public <E extends Enum<E> & Action<E>> Optional<AuthorizationAction> permits(thingy.Principal p, Permission<E> permission) {
         return forResource(permission.getResource()).forAction(permission.getAction()).forPrincipal(p);
 //        if(principals.contains(p)) {
 //            if(resource.equalsIgnoreCase(permission.getResource())) {

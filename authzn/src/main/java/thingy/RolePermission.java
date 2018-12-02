@@ -1,11 +1,11 @@
 package thingy;
 
-import static thingy.Action.DefaultAction.DEFAULT;
+import static thingy.AnyAction.ANY_ACTION;
 
-public class RolePermission extends Permission<Action.DefaultAction> {
+public class RolePermission extends Permission<AnyAction> {
 
     public RolePermission(String name) {
-        super(name, "/", DEFAULT);
+        super(name, "/", ANY_ACTION);
     }
 
 //    @Override
@@ -13,8 +13,8 @@ public class RolePermission extends Permission<Action.DefaultAction> {
 //        return Action.Actions.from(Action.DefaultAction.class).parser().parseAction(action).orElseThrow(()->new IllegalArgumentException("Oops. No action named "+action));
 //    }
 
-    protected Action.Parser<Action.DefaultAction> parser() {
-        return Action.Actions.from(Action.DefaultAction.class).parser();
+    protected Actions.Parser<AnyAction> parser() {
+        return Actions.of(AnyAction.class).parser();
     }
 
 }

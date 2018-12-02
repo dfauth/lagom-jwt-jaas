@@ -1,7 +1,5 @@
 package thingy;
 
-import java.util.Optional;
-
 public class ReadWritePermission extends Permission<ReadWritePermission.ReadableWritableActions> {
 
     protected ReadWritePermission(String name, String resource) {
@@ -17,12 +15,12 @@ public class ReadWritePermission extends Permission<ReadWritePermission.Readable
     }
 
     protected ReadableWritableActions parseAction(String action) {
-        return Action.Actions.from(ReadableWritableActions.class).parser().parseAction(action).orElseThrow(()-> new IllegalArgumentException("Oops. No action named "+action));
+        return Actions.of(ReadableWritableActions.class).parser().parseAction(action).orElseThrow(()-> new IllegalArgumentException("Oops. No action named "+action));
     }
 
     @Override
-    protected Action.Parser<ReadableWritableActions> parser() {
-        return Action.Actions.from(ReadableWritableActions.class).parser();
+    protected Actions.Parser<ReadableWritableActions> parser() {
+        return Actions.of(ReadableWritableActions.class).parser();
     }
 
     enum ReadableWritableActions implements Action<ReadableWritableActions> {
