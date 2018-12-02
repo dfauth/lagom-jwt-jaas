@@ -5,19 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
-import thingy.Directive;
-import thingy.DirectiveBuilder;
-import thingy.Domain;
-import thingy.ResourceHierarchy;
+import thingy.*;
 
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.function.Consumer;
 
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNotNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 import static org.testng.AssertJUnit.assertEquals;
+import static test.DirectiveTest.TestDomain.A;
+import static thingy.DirectiveEvent.EventType.GRANT;
 import static thingy.PrincipalType.USER;
 
 
@@ -29,11 +26,19 @@ public class DirectiveTest {
     public void testIt() {
         try {
             ObjectMapper mapper = new ObjectMapper();
-            String value = mapper.writeValueAsString(new Directive(USER.of("fred")));
-            logger.info("directive: "+value);
-            DirectiveBuilder builder = mapper.readValue(value, DirectiveBuilder.class);
-            logger.info("builder: "+builder);
-            Directive directive = builder.build();
+            String value = mapper.writeValueAsString(GRANT.directive(new Directive(USER.of("fred"))).inDomain(A.name));
+            logger.info("directive event: "+value);
+            DirectiveEventBuilder builder = mapper.readValue(value, DirectiveEventBuilder.class);
+            DirectiveEvent directiveEvent = builder.build();
+//            DirectiveEventBuilder builder = mapper.readValue(value, DirectiveEventBuilder.class);
+//            DirectiveEventBuilder builder = new ObjectMapper()
+//                    .readerFor(DirectiveEventBuilder.class)
+//                    .readValue(value);
+//            logger.info("builder: "+builder);
+//            DirectiveEvent directiveEvent = builder.build();
+            assertEquals(directiveEvent.getEventType(), GRANT);
+            assertTrue(directiveEvent.getDomain().equalsIgnoreCase(TestDomain.A.getName()));
+            Directive directive = directiveEvent.getDirective();
             assertEquals(directive.getResource(), "/");
             assertTrue(directive.getPrincipals().contains(USER.of("fred")));
         } catch (JsonProcessingException e) {
@@ -48,7 +53,7 @@ public class DirectiveTest {
     @Test
     public void testDomainResources() {
 
-        TestDomain.A.getName();
+        A.getName();
         ResourceHierarchy g = HIERARCHY.findNearest(thingy.Domain.DomainResource.parseResourceString.apply("aa.bb.ff"));
         assertNotNull(g);
         assertNotNull(g.resource());
