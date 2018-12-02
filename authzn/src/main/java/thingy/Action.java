@@ -4,7 +4,7 @@ public interface Action<E extends Enum<E>> {
 
     String ALL = "*";
 
-    default boolean implies(Action<E> action) {
+    default <E extends Enum<E> & Action<E>> boolean implies(Action<E> action) {
         return this.equals(action);
     }
 

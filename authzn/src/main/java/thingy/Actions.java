@@ -8,16 +8,20 @@ public class Actions<E extends Enum<E> & Action<E>> {
 
     private final Set<Action<E>> actions;
 
-    public static <E extends Enum<E>> boolean implies(Set<Action<E>> actions, Action<E> action) {
+    public static <E extends Enum<E> & Action<E>> boolean implies(Set<Action<E>> actions, Action<E> action) {
         return implies(actions).apply(action);
     }
 
-    public static <E extends Enum<E>> Function<Action<E>, Boolean> implies(Set<Action<E>> actions) {
+    public static <E extends Enum<E> & Action<E>> Function<Action<E>, Boolean> implies(Set<Action<E>> actions) {
         return action -> actions.stream().filter(a -> a.implies(action)).findFirst().isPresent();
     }
 
     public static <E extends Enum<E> & Action<E>> Actions<E> of(Class<E> clazz) {
         return new Actions(clazz.getEnumConstants());
+    }
+
+    public static <E extends Enum<E> & Action<E>> Actions<E> of(E... actions) {
+        return new Actions(actions);
     }
 
     public static <E extends Enum<E> & Action<E>> Actions<E> of(Set<Action<E>> actions) {
