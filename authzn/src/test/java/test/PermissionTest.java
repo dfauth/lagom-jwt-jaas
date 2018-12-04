@@ -35,7 +35,7 @@ public class PermissionTest {
         String domain = "domain";
         ImmutablePrincipal fred = USER.of("fred");
         Directive directive = new Directive(fred);
-        AuthorizationPermitter policy = new AuthorizationPermitter() {
+        AuthorizationPolicy policy = new AuthorizationPolicy() {
             @Override
             public <E extends Enum<E> & Action<E>> AuthorizationAction permit(Subject subject, Permission<E> permission) {
                 return subject.getPrincipals().stream().map(p -> directive.permits(p, permission)).

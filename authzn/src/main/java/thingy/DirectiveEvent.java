@@ -1,5 +1,7 @@
 package thingy;
 
+import java.util.function.BiConsumer;
+
 public class DirectiveEvent {
 
     private String domain;
@@ -27,9 +29,19 @@ public class DirectiveEvent {
         return directive;
     }
 
-    public static enum EventType {
-        GRANT,
-        REVOKE;
+    public void process(CompositeAuthorizationPolicy policy) {
+        eventType.accept(policy, this);
+    }
+
+    public static enum EventType implements BiConsumer<CompositeAuthorizationPolicy, DirectiveEvent> {
+        GRANT((p,e) -> p.grantDirective(e.getDomain(), e.getDirective())),
+        REVOKE((p,e) -> p.revokeDirective(e.getDomain(), e.getDirective()));
+
+        private final BiConsumer<CompositeAuthorizationPolicy, DirectiveEvent> nested;
+
+        EventType(BiConsumer<CompositeAuthorizationPolicy, DirectiveEvent> nested) {
+            this.nested = nested;
+        }
 
         public DirectiveEventBuilder directive(Directive directive) {
             return new DirectiveEventBuilder(this, new DirectiveBuilder(){
@@ -38,6 +50,10 @@ public class DirectiveEvent {
                     return directive;
                 }
             });
+        }
+
+        public void accept(CompositeAuthorizationPolicy policy, DirectiveEvent event) {
+            nested.accept(policy, event);
         }
     }
 }
