@@ -6,7 +6,7 @@ public class CompositeAuthorizationPolicy implements AuthorizationPolicy {
     void revokeDirective(String domain, Directive directive){}
 
     @Override
-    public <E extends Enum<E> & Action<E>> AuthorizationAction permit(Subject subject, Permission<E> permission) {
+    public <E extends Enum<E> & Action<E>> AuthorizationDecision permit(Subject subject, Permission<E> permission) {
         return null;
     }
 

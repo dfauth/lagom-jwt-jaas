@@ -4,7 +4,7 @@ import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.List;
 
-import static thingy.AuthorizationAction.DENY;
+import static thingy.AuthorizationDecision.DENY;
 
 
 public class PolicyFunction implements AuthorizationPolicy {
@@ -13,7 +13,7 @@ public class PolicyFunction implements AuthorizationPolicy {
     private List<Directive> directives = new ArrayList<>();
 
     @Override
-    public AuthorizationAction permit(Subject subject, Permission permission) {
+    public AuthorizationDecision permit(Subject subject, Permission permission) {
 //        PolicyModel policyModel = ROOT.find(permission).forSubject(subject);
 //        return policyModel.implies(permission);
         return DENY;

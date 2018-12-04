@@ -4,14 +4,14 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
-import static thingy.AuthorizationAction.ALLOW;
+import static thingy.AuthorizationDecision.ALLOW;
 
 
 public class Directive {
     private final Set<ImmutablePrincipal> principals;
     private final String actions;
     private final String resource;
-    private final AuthorizationAction authznAction;
+    private final AuthorizationDecision authznAction;
 
     public Directive(ImmutablePrincipal principal) {
         this(Collections.singleton(principal), "/", "*", ALLOW);
@@ -25,7 +25,7 @@ public class Directive {
         this(Collections.singleton(principal), resource, actions, ALLOW);
     }
 
-    public Directive(Set<ImmutablePrincipal> principals, String resource, String actions, AuthorizationAction authznAction) {
+    public Directive(Set<ImmutablePrincipal> principals, String resource, String actions, AuthorizationDecision authznAction) {
         this.principals = principals;
         this.resource = resource;
         this.actions = actions;
@@ -44,7 +44,7 @@ public class Directive {
         return resource;
     }
 
-    public AuthorizationAction getAuthznAction() {
+    public AuthorizationDecision getAuthznAction() {
         return authznAction;
     }
 
@@ -73,7 +73,7 @@ public class Directive {
         };
     }
 
-    public <E extends Enum<E> & Action<E>> Optional<AuthorizationAction> permits(thingy.Principal p, Permission<E> permission) {
+    public <E extends Enum<E> & Action<E>> Optional<AuthorizationDecision> permits(thingy.Principal p, Permission<E> permission) {
         return forResource(permission.getResource()).forAction(permission.getAction()).forPrincipal(p);
 //        if(principals.contains(p)) {
 //            if(resource.equalsIgnoreCase(permission.getResource())) {

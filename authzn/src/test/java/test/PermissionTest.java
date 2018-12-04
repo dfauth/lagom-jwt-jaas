@@ -9,7 +9,7 @@ import thingy.*;
 import java.util.Optional;
 
 import static org.testng.Assert.assertTrue;
-import static thingy.AuthorizationAction.DENY;
+import static thingy.AuthorizationDecision.DENY;
 import static thingy.PrincipalType.USER;
 
 
@@ -37,13 +37,13 @@ public class PermissionTest {
         Directive directive = new Directive(fred);
         AuthorizationPolicy policy = new AuthorizationPolicy() {
             @Override
-            public <E extends Enum<E> & Action<E>> AuthorizationAction permit(Subject subject, Permission<E> permission) {
+            public <E extends Enum<E> & Action<E>> AuthorizationDecision permit(Subject subject, Permission<E> permission) {
                 return subject.getPrincipals().stream().map(p -> directive.permits(p, permission)).
-                        reduce(Optional.empty(), (o1, o2) -> AuthorizationAction.compose(o1, o2)).orElse(DENY);
+                        reduce(Optional.empty(), (o1, o2) -> AuthorizationDecision.compose(o1, o2)).orElse(DENY);
             }
         };
-        AuthorizationAction authorizationAction = policy.permit(new ImmutableSubject(fred), new RolePermission(domain));
-        assertTrue(authorizationAction.isAllowed());
+        AuthorizationDecision authorizationDecision = policy.permit(new ImmutableSubject(fred), new RolePermission(domain));
+        assertTrue(authorizationDecision.isAllowed());
     }
 
 }

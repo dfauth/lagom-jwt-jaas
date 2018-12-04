@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 public class DirectiveBuilder implements Builder<Directive> {
 
-    private AuthorizationAction authznAction;
+    private AuthorizationDecision authznAction;
     private Set<ImmutablePrincipalBuilder> principals;
     private String actions;
     private String resource;
@@ -14,7 +14,7 @@ public class DirectiveBuilder implements Builder<Directive> {
         return new Directive(principals.stream().map(b -> b.build()).collect(Collectors.toSet()), resource, actions, authznAction);
     }
 
-    public void setAuthznAction(AuthorizationAction authznAction) {
+    public void setAuthznAction(AuthorizationDecision authznAction) {
         this.authznAction = authznAction;
     }
 

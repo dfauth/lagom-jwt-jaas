@@ -11,8 +11,8 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.AssertJUnit.assertNotNull;
-import static thingy.AuthorizationAction.ALLOW;
-import static thingy.AuthorizationAction.DENY;
+import static thingy.AuthorizationDecision.ALLOW;
+import static thingy.AuthorizationDecision.DENY;
 import static thingy.PrincipalType.ROLE;
 import static thingy.PrincipalType.USER;
 
@@ -29,7 +29,7 @@ public class FunctionalTest {
         Subject subject = new ImmutableSubject(USER.of("fred"), ROLE.of("role1"));
         Permission permission = new RolePermission("admin");
 
-        AuthorizationAction result = policy.permit(subject, permission);
+        AuthorizationDecision result = policy.permit(subject, permission);
 
         assertFalse(result.isAllowed());
     }
@@ -41,28 +41,27 @@ public class FunctionalTest {
         assertTrue(DENY.compose(ALLOW).isDenied());
         assertTrue(DENY.compose(DENY).isDenied());
 
-        Optional<AuthorizationAction> optionAllow = Optional.of(ALLOW);
-        Optional<AuthorizationAction> optionDeny = Optional.of(DENY);
-        Optional<AuthorizationAction> optionEmpty = Optional.empty();
+        Optional<AuthorizationDecision> optionAllow = Optional.of(ALLOW);
+        Optional<AuthorizationDecision> optionDeny = Optional.of(DENY);
+        Optional<AuthorizationDecision> optionEmpty = Optional.empty();
 
-        assertTrue(AuthorizationAction.compose(optionAllow, optionAllow).get().isAllowed());
-        assertTrue(AuthorizationAction.compose(optionAllow, optionDeny).get().isDenied());
-        assertTrue(AuthorizationAction.compose(optionAllow, optionEmpty).get().isAllowed());
+        assertTrue(AuthorizationDecision.compose(optionAllow, optionAllow).get().isAllowed());
+        assertTrue(AuthorizationDecision.compose(optionAllow, optionDeny).get().isDenied());
+        assertTrue(AuthorizationDecision.compose(optionAllow, optionEmpty).get().isAllowed());
 
-        assertTrue(AuthorizationAction.compose(optionDeny, optionAllow).get().isDenied());
-        assertTrue(AuthorizationAction.compose(optionDeny, optionDeny).get().isDenied());
-        assertTrue(AuthorizationAction.compose(optionDeny, optionEmpty).get().isDenied());
+        assertTrue(AuthorizationDecision.compose(optionDeny, optionAllow).get().isDenied());
+        assertTrue(AuthorizationDecision.compose(optionDeny, optionDeny).get().isDenied());
+        assertTrue(AuthorizationDecision.compose(optionDeny, optionEmpty).get().isDenied());
 
-        assertTrue(AuthorizationAction.compose(optionEmpty, optionAllow).get().isAllowed());
-        assertTrue(AuthorizationAction.compose(optionEmpty, optionDeny).get().isDenied());
-        assertFalse(AuthorizationAction.compose(optionEmpty, optionEmpty).isPresent());
+        assertTrue(AuthorizationDecision.compose(optionEmpty, optionAllow).get().isAllowed());
+        assertTrue(AuthorizationDecision.compose(optionEmpty, optionDeny).get().isDenied());
+        assertFalse(AuthorizationDecision.compose(optionEmpty, optionEmpty).isPresent());
     }
 
     @Test
-    public void testAuthorizationActionRunner() {
-        PriviledgedActionRunner authorizationAction = ALLOW;
+    public void testPriviledgedActionRunner() {
         TestToggle result = new TestToggle();
-        TestToggle toggle = authorizationAction.run(() -> result.toggle());
+        TestToggle toggle = ALLOW.run(() -> result.toggle());
         assertNotNull(toggle);
         assertTrue(toggle.wasToggled());
 
