@@ -6,10 +6,11 @@ import org.testng.annotations.Test;
 import thingy.*;
 
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
-import static org.testng.Assert.assertFalse;
-import static org.testng.Assert.assertNull;
-import static org.testng.Assert.assertTrue;
+import static org.testng.Assert.*;
 import static org.testng.AssertJUnit.assertNotNull;
 import static thingy.AuthorizationDecision.ALLOW;
 import static thingy.AuthorizationDecision.DENY;
@@ -77,12 +78,71 @@ public class FunctionalTest {
         assertFalse(toggle.wasToggled());
     }
 
+    @Test
+    public void testMonad() {
+        TestToggle toggle = new TestToggle();
+        AuthorizationDecisionMonad monad = new AuthorizationDecisionMonad(ALLOW);
+        CompletionListener a = new CompletionListener(r -> logger.info("result is " + r));
+        CompletionListener b = new CompletionListener(r -> logger.info("result is failure: "+r));
+        CompletionListener c = new CompletionListener(r -> logger.info("did not run: "+r));
+        monad.onComplete(a);
+        monad.onException(b);
+        monad.onAuthorizationFailure(c);
+
+        TestToggle finalToggle = toggle;
+        Function<Void, TestToggle> f = nothing -> finalToggle.toggle();
+        PriviledgedActionResult result = monad.run(f);
+
+        assertNotNull(result);
+        assertTrue(a.wasSetAndReset());
+        assertTrue(toggle.wasToggled());
+        assertFalse(b.wasSetAndReset());
+        assertFalse(c.wasSetAndReset());
+
+        toggle.reset();
+        toggle = new TestToggle("Oops");
+        TestToggle finalToggle1 = toggle;
+        result = monad.run(n -> finalToggle1.toggle());
+
+        assertNotNull(result);
+        assertFalse(a.wasSetAndReset());
+        assertTrue(toggle.wasToggled());
+        assertTrue(b.wasSetAndReset());
+        assertFalse(c.wasSetAndReset());
+
+        monad = new AuthorizationDecisionMonad(DENY);
+        monad.onComplete(a);
+        monad.onException(b);
+        monad.onAuthorizationFailure(c);
+
+        toggle = new TestToggle();
+        TestToggle finalToggle2 = toggle;
+        result = monad.run(n -> finalToggle2.toggle());
+
+        assertNotNull(result);
+        assertFalse(a.wasSetAndReset());
+        assertFalse(toggle.wasToggled());
+        assertFalse(b.wasSetAndReset());
+        assertTrue(c.wasSetAndReset());
+    }
+
     class TestToggle {
 
         private boolean toggled = false;
+        private Optional<String> throwable = Optional.empty();
+
+        public TestToggle() {
+        }
+
+        public TestToggle(String oops) {
+            this.throwable = Optional.of(oops);
+        }
 
         public TestToggle toggle() {
             toggled = true;
+            throwable.map(msg -> {
+                throw new RuntimeException(msg);
+            });
             return this;
         }
 
@@ -94,6 +154,34 @@ public class FunctionalTest {
 
         public void reset() {
             toggled = false;
+        }
+    }
+
+    class CompletionListener<T> implements Consumer<T> {
+
+        private final Consumer<T> nested;
+        private AtomicBoolean latch = new AtomicBoolean(false);
+
+        public CompletionListener(Consumer<T> consumer) {
+            this.nested = consumer;
+        }
+
+        @Override
+        public void accept(T t) {
+            this.latch.set(true);
+            this.nested.accept(t);
+        }
+
+        public boolean wasSet() {
+            return latch.get();
+        }
+
+        public boolean wasSetAndReset() {
+            return latch.getAndSet(false);
+        }
+
+        public void reset() {
+            latch.set(false);
         }
     }
 }

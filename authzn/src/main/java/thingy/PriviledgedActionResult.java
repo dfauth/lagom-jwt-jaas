@@ -18,10 +18,6 @@ public class PriviledgedActionResult<R> {
         this.result = result;
     }
 
-    public static <R> PriviledgedActionResult<R> of(R result) {
-        return new PriviledgedActionResult<>(result);
-    }
-
     public static class ExecutionFailure<R> extends PriviledgedActionResult<R> {
 
         private final RuntimeException e;
