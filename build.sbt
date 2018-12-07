@@ -26,6 +26,7 @@ val testng = "org.testng" % "testng" % "latest.integration"
 val slf4j = "org.slf4j" % "slf4j-api" % "latest.integration"
 val slf4j_log4j = "org.slf4j" % "slf4j-log4j12" % "latest.integration"
 val jackson = "com.fasterxml.jackson.core" % "jackson-databind" % "latest.integration"
+val vavr = "io.vavr" % "vavr" % "latest.integration"
 
 
 lazy val `lagom-jwt-jaas` = (project in file("."))
@@ -64,7 +65,8 @@ lazy val `authzn` = (project in file("authzn"))
       slf4j,
       slf4j_log4j,
       testng,
-      jackson
+      jackson,
+      vavr
     )
   )
 

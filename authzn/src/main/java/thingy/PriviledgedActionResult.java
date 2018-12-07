@@ -18,21 +18,4 @@ public class PriviledgedActionResult<R> {
         this.result = result;
     }
 
-    public static class ExecutionFailure<R> extends PriviledgedActionResult<R> {
-
-        private final RuntimeException e;
-
-        public ExecutionFailure(RuntimeException e) {
-            this.e = e;
-        }
-    }
-
-    public static class AuthorizationFailure<R> extends PriviledgedActionResult<R> {
-
-        private final SecurityException e;
-
-        public AuthorizationFailure(SecurityException e) {
-            this.e = e;
-        }
-    }
 }

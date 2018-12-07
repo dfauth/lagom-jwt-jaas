@@ -34,4 +34,5 @@ public enum AuthorizationDecision implements PriviledgedActionRunner {
                       ).orElse(o1)
         ).orElse(o2);
     }
+
 }

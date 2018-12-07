@@ -81,7 +81,9 @@ public class FunctionalTest {
     @Test
     public void testMonad() {
         TestToggle toggle = new TestToggle();
-        AuthorizationDecisionMonad monad = new AuthorizationDecisionMonad(ALLOW);
+        TestToggle finalToggle = toggle;
+        Function<Void, TestToggle> f = nothing -> finalToggle.toggle();
+        AuthorizationDecisionMonad<TestToggle> monad = AuthorizationDecisionMonad.of(f);
         CompletionListener a = new CompletionListener(r -> logger.info("result is " + r));
         CompletionListener b = new CompletionListener(r -> logger.info("result is failure: "+r));
         CompletionListener c = new CompletionListener(r -> logger.info("did not run: "+r));
@@ -89,41 +91,39 @@ public class FunctionalTest {
         monad.onException(b);
         monad.onAuthorizationFailure(c);
 
-        TestToggle finalToggle = toggle;
-        Function<Void, TestToggle> f = nothing -> finalToggle.toggle();
-        PriviledgedActionResult result = monad.run(f);
+        AuthorizationDecisionMonad<TestToggle> result = monad.apply(ALLOW);
 
         assertNotNull(result);
-        assertTrue(a.wasSetAndReset());
+        assertTrue(a.wasSet());
         assertTrue(toggle.wasToggled());
-        assertFalse(b.wasSetAndReset());
-        assertFalse(c.wasSetAndReset());
+        assertFalse(b.wasSet());
+        assertFalse(c.wasSet());
+        a.reset();b.reset();c.reset();
 
         toggle.reset();
         toggle = new TestToggle("Oops");
         TestToggle finalToggle1 = toggle;
-        result = monad.run(n -> finalToggle1.toggle());
+        AuthorizationDecisionMonad<TestToggle> monad1 = AuthorizationDecisionMonad.of(n -> finalToggle1.toggle());
+        monad1.onComplete(a);
+        monad1.onException(b);
+        monad1.onAuthorizationFailure(c);
+        result = monad1.apply(ALLOW);
 
         assertNotNull(result);
-        assertFalse(a.wasSetAndReset());
+        assertFalse(a.wasSet());
         assertTrue(toggle.wasToggled());
-        assertTrue(b.wasSetAndReset());
-        assertFalse(c.wasSetAndReset());
+        assertTrue(b.wasSet());
+        assertFalse(c.wasSet());
+        a.reset();b.reset();c.reset();
 
-        monad = new AuthorizationDecisionMonad(DENY);
-        monad.onComplete(a);
-        monad.onException(b);
-        monad.onAuthorizationFailure(c);
-
-        toggle = new TestToggle();
-        TestToggle finalToggle2 = toggle;
-        result = monad.run(n -> finalToggle2.toggle());
+        result = monad1.apply(DENY);
 
         assertNotNull(result);
-        assertFalse(a.wasSetAndReset());
+        assertFalse(a.wasSet());
         assertFalse(toggle.wasToggled());
-        assertFalse(b.wasSetAndReset());
-        assertTrue(c.wasSetAndReset());
+        assertFalse(b.wasSet());
+        assertTrue(c.wasSet());
+        a.reset();b.reset();c.reset();
     }
 
     class TestToggle {
