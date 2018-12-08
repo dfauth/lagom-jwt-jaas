@@ -9,12 +9,12 @@ import java.util.function.Supplier;
 public class AuthorizationDecisionMonad<R> {
 
     private Consumer<R> onComplete = r -> {};
-    private Consumer<RuntimeException> onException = r -> {};
+    private Consumer<Exception> onException = r -> {};
     private Consumer<SecurityException> onAuthorizationFailure = r -> {};
-    private Function<Void, R> f;
+    private Callable<R> f;
 
-    public AuthorizationDecisionMonad(Function<Void, R> f) {
-        this.f = f;
+    public AuthorizationDecisionMonad(Callable<R> callable) {
+        this.f = callable;
     }
 
     public AuthorizationDecisionMonad() {
@@ -24,7 +24,7 @@ public class AuthorizationDecisionMonad<R> {
         onComplete = consumer;
     }
 
-    public void onException(Consumer<RuntimeException> consumer) {
+    public void onException(Consumer<Exception> consumer) {
         onException = consumer;
     }
 
@@ -32,10 +32,10 @@ public class AuthorizationDecisionMonad<R> {
         onAuthorizationFailure = consumer;
     }
 
-//    public <U> AuthorizationDecisionMonad<U> map(Function<? super PriviledgedActionResult<R>, ? extends U> f) {
-//        return new AuthorizationDecisionMonad<U>(v -> f.apply(invoke()));
-//    }
-//
+    public <U> AuthorizationDecisionMonad<U> map(Function<? super R, ? extends U> g) {
+        return new AuthorizationDecisionMonad<U>(() -> g.apply(f.call()));
+    }
+
 //    public <U> AuthorizationDecisionMonad<U> flatMap(Function<? super PriviledgedActionResult<R>, AuthorizationDecisionMonad<? extends U>> f) {
 //        return new AuthorizationDecisionMonad<U>(v -> f.apply(invoke()).invoke());
 //    }
@@ -45,35 +45,32 @@ public class AuthorizationDecisionMonad<R> {
 //    }
 
     public AuthorizationDecisionMonad<R> apply(AuthorizationDecision decision) {
-        try {
-            R result = decision.run(()->f.apply(null));
-            onComplete.accept(result);
-            return new Success(result);
-        } catch (SecurityException e) {
+        if(decision.isAllowed()) {
+            try {
+                R result = f.call();
+                onComplete.accept(result);
+                return new Success(result);
+            } catch (Exception e) {
+                onException.accept(e);
+                return new ExecutionFailure(e);
+            }
+        } else {
+            SecurityException e = new SecurityException("Oops, not allowed");
             onAuthorizationFailure.accept(e);
             return new AuthorizationFailure(e);
-        } catch (RuntimeException e) {
-            onException.accept(e);
-            return new ExecutionFailure(e);
         }
     }
 
-    public static <R> Function<Void, R> adapter(PrivilegedAction<R> action) {
-        return ignored -> action.run();
+    public static <R> Callable<R> adapter(PrivilegedAction<R> action) {
+        return () -> action.run();
     }
 
-    public static <R> Function<Void, R> adapter(Supplier<R> supplier) {
-        return ignored -> supplier.get();
+    public static <R> Callable<R> adapter(Supplier<R> supplier) {
+        return () -> supplier.get();
     }
 
-    public static <R> Function<Void, R> adapter(Callable<R> callable) {
-        return ignored -> {
-            try {
-                return callable.call();
-            } catch(Exception e) {
-                throw new RuntimeException(e);
-            }
-        };
+    public static <R> Callable<R> adapter(Function<Void, R> f) {
+        return () -> f.apply(null);
     }
 
     public static <R> AuthorizationDecisionMonad<R> of(PrivilegedAction<R> f) {
@@ -81,7 +78,7 @@ public class AuthorizationDecisionMonad<R> {
     }
 
     public static <R> AuthorizationDecisionMonad<R> of(Function<Void,R> f) {
-        return new AuthorizationDecisionMonad<R>(f);
+        return of(adapter(f));
     }
 
     public static <R> AuthorizationDecisionMonad<R> of(Supplier<R> f) {
@@ -89,7 +86,23 @@ public class AuthorizationDecisionMonad<R> {
     }
 
     public static <R> AuthorizationDecisionMonad<R> of(Callable<R> f) {
-        return of(adapter(f));
+        return new AuthorizationDecisionMonad<R>(f);
+    }
+
+    public R get() {
+        throw new IllegalStateException("Cannot get the result without a decision");
+    }
+
+    public boolean isSuccess() {
+        return false;
+    }
+
+    public boolean isException() {
+        return false;
+    }
+
+    public boolean isUnauthorised() {
+        return false;
     }
 
 //    public R apply(AuthorizationDecision decision) {

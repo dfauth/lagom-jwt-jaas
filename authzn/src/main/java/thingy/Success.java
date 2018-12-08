@@ -8,4 +8,13 @@ public class Success<R> extends AuthorizationDecisionMonad<R> {
         this.value = value;
     }
 
+    @Override
+    public boolean isSuccess() {
+        return true;
+    }
+
+    @Override
+    public R get() {
+        return value;
+    }
 }

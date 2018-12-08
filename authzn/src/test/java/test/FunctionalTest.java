@@ -126,6 +126,30 @@ public class FunctionalTest {
         a.reset();b.reset();c.reset();
     }
 
+    @Test
+    public void testMap() {
+        TestToggle toggle = new TestToggle();
+        TestToggle finalToggle = toggle;
+        Function<Void, TestToggle> f = nothing -> finalToggle.toggle();
+        AuthorizationDecisionMonad<TestToggle> monad = AuthorizationDecisionMonad.of(f);
+        CompletionListener a = new CompletionListener(r -> logger.info("result is " + r));
+        CompletionListener b = new CompletionListener(r -> logger.info("result is failure: "+r));
+        CompletionListener c = new CompletionListener(r -> logger.info("did not run: "+r));
+
+        AuthorizationDecisionMonad<Boolean> monad1 = monad.map(TestToggle::wasToggled);
+        monad1.onComplete(a);
+        monad1.onException(b);
+        monad1.onAuthorizationFailure(c);
+        AuthorizationDecisionMonad<Boolean> result = monad1.apply(ALLOW);
+
+        assertNotNull(result);
+        assertTrue(result.isSuccess());
+        assertTrue(result.get());
+        assertTrue(a.wasSet());
+        assertTrue(result.get());
+        a.reset();b.reset();c.reset();
+    }
+
     class TestToggle {
 
         private boolean toggled = false;
