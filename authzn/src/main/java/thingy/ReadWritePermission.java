@@ -23,7 +23,7 @@ public class ReadWritePermission extends Permission<ReadWritePermission.Readable
         return Actions.of(ReadableWritableActions.class).parser();
     }
 
-    enum ReadableWritableActions implements Action<ReadableWritableActions> {
+    public enum ReadableWritableActions implements Action<ReadableWritableActions> {
         READ, WRITE;
     }
 }

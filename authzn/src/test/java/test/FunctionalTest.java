@@ -24,15 +24,19 @@ public class FunctionalTest {
 
     @Test
     public void testIt() {
-        PolicyFunction policy = new PolicyFunction();
+        SingleDomainPolicy policy = new SingleDomainPolicy("poo");
         Directive d = new Directive(ROLE.of("role1"));
-        policy.add(d);
+        policy.onEvent(new DirectiveEvent("admin", d));
         Subject subject = new ImmutableSubject(USER.of("fred"), ROLE.of("role1"));
         Permission permission = new RolePermission("admin");
 
         AuthorizationDecision result = policy.permit(subject, permission);
 
-        assertFalse(result.isAllowed());
+        assertFalse(result.isAllowed()); // fails because of differing domains
+
+        // add an identical directive for the correct domain
+        policy.onEvent(new DirectiveEvent("poo", d));
+        assertTrue(policy.permit(subject, permission).isAllowed());
     }
 
     @Test

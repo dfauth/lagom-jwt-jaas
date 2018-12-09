@@ -63,6 +63,7 @@ lazy val `auth` = (project in file("auth"))
   )
 
 lazy val `authzn` = (project in file("authzn"))
+  .enablePlugins(TestNGPlugin)
   .settings(
     libraryDependencies ++= Seq(
       slf4j,

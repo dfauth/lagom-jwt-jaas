@@ -41,7 +41,7 @@ public class DirectiveTest {
             Directive directive = directiveEvent.getDirective();
             assertEquals(directive.getResource(), "/");
             assertTrue(directive.getPrincipals().contains(USER.of("fred")));
-            CompositeAuthorizationPolicy policy = new CompositeAuthorizationPolicy();
+            DirectiveEventAware policy = new SingleDomainPolicy("poo");
             policy.onEvent(directiveEvent);
         } catch (JsonProcessingException e) {
             logger.error(e.getMessage(), e);

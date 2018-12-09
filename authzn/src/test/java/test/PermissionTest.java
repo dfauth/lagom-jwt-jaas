@@ -6,10 +6,10 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import thingy.*;
 
-import java.util.Optional;
+import java.util.Collections;
+import java.util.Set;
 
 import static org.testng.Assert.assertTrue;
-import static thingy.AuthorizationDecision.DENY;
 import static thingy.PrincipalType.USER;
 
 
@@ -37,13 +37,31 @@ public class PermissionTest {
         Directive directive = new Directive(fred);
         AuthorizationPolicy policy = new AuthorizationPolicy() {
             @Override
-            public <E extends Enum<E> & Action<E>> AuthorizationDecision permit(Subject subject, Permission<E> permission) {
-                return subject.getPrincipals().stream().map(p -> directive.permits(p, permission)).
-                        reduce(Optional.empty(), (o1, o2) -> AuthorizationDecision.compose(o1, o2)).orElse(DENY);
+            public <E extends Enum<E> & Action<E>> Set<Directive> directivesFor(Permission<E> permission) {
+                return Collections.singleton(directive);
             }
         };
         AuthorizationDecision authorizationDecision = policy.permit(new ImmutableSubject(fred), new RolePermission(domain));
         assertTrue(authorizationDecision.isAllowed());
     }
+
+//    @Test
+//    public void testAll() {
+//        String domain = "domain";
+//        ImmutablePrincipal fred = USER.of("fred");
+//        Directive directive = new Directive(fred);
+//        AuthorizationPolicy policy = new AuthorizationPolicy() {
+//            @Override
+//            public <E extends Enum<E> & Action<E>> Set<Directive> directivesFor(Permission<E> permission) {
+//                return Collections.singleton(directive);
+//            }
+//        };
+//        AuthorizationDecision authorizationDecision = policy.permitForAllOf(
+//                new ImmutableSubject(fred),
+//                        new RolePermission(domain),
+//                        new ReadWritePermission(domain, "a/b/c/d", READ)
+//        );
+//        assertTrue(authorizationDecision.isAllowed());
+//    }
 
 }
