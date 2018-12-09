@@ -21,12 +21,14 @@ val jwt = "com.pauldijou" %% "jwt-play-json" % "0.12.1"
 val h2 = "com.h2database" % "h2" % "latest.integration"
 val slick = "com.typesafe.slick" %% "slick" % "3.2.3"
 val automat = "automat" %% "automat" % "0.1"
-val logback = "ch.qos.logback" % "logback-classic" % "latest.integration"
+val logback_core = "ch.qos.logback" % "logback-core" % "latest.integration"
+val logback_classic = "ch.qos.logback" % "logback-classic" % "latest.integration"
 val testng = "org.testng" % "testng" % "latest.integration"
 val slf4j = "org.slf4j" % "slf4j-api" % "latest.integration"
 val slf4j_log4j = "org.slf4j" % "slf4j-log4j12" % "latest.integration"
 val jackson = "com.fasterxml.jackson.core" % "jackson-databind" % "latest.integration"
 val vavr = "io.vavr" % "vavr" % "latest.integration"
+val grizzled = "org.clapper" %% "grizzled-slf4j" % "latest.integration"
 
 
 lazy val `lagom-jwt-jaas` = (project in file("."))
@@ -54,7 +56,8 @@ lazy val `auth` = (project in file("auth"))
       accord,
       jwt,
       play,
-      logback,
+      logback_classic,
+      logback_core,
       testng
     )
   )
@@ -63,7 +66,8 @@ lazy val `authzn` = (project in file("authzn"))
   .settings(
     libraryDependencies ++= Seq(
       slf4j,
-      slf4j_log4j,
+      logback_core,
+      logback_classic,
       testng,
       jackson,
       vavr
