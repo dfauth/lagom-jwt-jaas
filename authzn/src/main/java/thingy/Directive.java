@@ -9,23 +9,23 @@ import static thingy.AuthorizationDecision.ALLOW;
 
 public class Directive {
     private final Set<ImmutablePrincipal> principals;
-    private final String actions;
+    private final Set<String> actions;
     private final String resource;
     private final AuthorizationDecision authznAction;
 
     public Directive(ImmutablePrincipal principal) {
-        this(Collections.singleton(principal), "/", "*", ALLOW);
+        this(Collections.singleton(principal), "/", Collections.singleton("*"), ALLOW);
     }
 
     public Directive(ImmutablePrincipal principal, String resource) {
-        this(Collections.singleton(principal), resource, "*", ALLOW);
+        this(Collections.singleton(principal), resource, Collections.singleton("*"), ALLOW);
     }
 
-    public Directive(ImmutablePrincipal principal, String resource, String actions) {
-        this(Collections.singleton(principal), resource, actions, ALLOW);
+    public Directive(ImmutablePrincipal principal, String resource, String action) {
+        this(Collections.singleton(principal), resource, DirectiveBuilder.splitTrim(action), ALLOW);
     }
 
-    public Directive(Set<ImmutablePrincipal> principals, String resource, String actions, AuthorizationDecision authznAction) {
+    public Directive(Set<ImmutablePrincipal> principals, String resource, Set<String> actions, AuthorizationDecision authznAction) {
         this.principals = principals;
         this.resource = resource;
         this.actions = actions;
@@ -36,7 +36,7 @@ public class Directive {
         return principals;
     }
 
-    public String getActions() {
+    public Set<String> getActions() {
         return actions;
     }
 

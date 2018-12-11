@@ -61,10 +61,14 @@ public class DirectiveEvent {
         }
 
         public DirectiveEventBuilder directive(Directive directive) {
+            return directive(() -> directive);
+        }
+
+        public DirectiveEventBuilder directive(Builder<Directive> builder) {
             return new DirectiveEventBuilder(this, new DirectiveBuilder(){
                 @Override
                 public Directive build() {
-                    return directive;
+                    return builder.build();
                 }
             });
         }

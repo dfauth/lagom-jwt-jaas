@@ -3,6 +3,7 @@ package thingy;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Actions<E extends Enum<E> & Action<E>> {
 
@@ -57,7 +58,15 @@ public class Actions<E extends Enum<E> & Action<E>> {
         }
 
         public Set<E> parseActions(String str) {
-            return Arrays.stream(str.split(",")).flatMap(s -> getActions(s.trim()).stream()).collect(Collectors.toSet());
+            return parseActions(Arrays.stream(str.split(",")));
+        }
+
+        private Set<E> parseActions(Stream<String> stream) {
+            return stream.flatMap(s -> getActions(s.trim()).stream()).collect(Collectors.toSet());
+        }
+
+        public Set<E> parseActions(Set<String> str) {
+            return parseActions(str.stream());
         }
 
         public Optional<E> parseAction(String str) {

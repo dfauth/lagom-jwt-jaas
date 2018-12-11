@@ -15,6 +15,7 @@ import static org.testng.Assert.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static test.DirectiveTest.TestDomain.A;
 import static thingy.DirectiveEvent.EventType.GRANT;
+import static thingy.PrincipalType.ROLE;
 import static thingy.PrincipalType.USER;
 
 
@@ -30,17 +31,40 @@ public class DirectiveTest {
             logger.info("directive event: "+value);
             DirectiveEventBuilder builder = mapper.readValue(value, DirectiveEventBuilder.class);
             DirectiveEvent directiveEvent = builder.build();
-//            DirectiveEventBuilder builder = mapper.readValue(value, DirectiveEventBuilder.class);
-//            DirectiveEventBuilder builder = new ObjectMapper()
-//                    .readerFor(DirectiveEventBuilder.class)
-//                    .readValue(value);
-//            logger.info("builder: "+builder);
-//            DirectiveEvent directiveEvent = builder.build();
             assertEquals(directiveEvent.getEventType(), GRANT);
             assertTrue(directiveEvent.getDomain().equalsIgnoreCase(TestDomain.A.getName()));
             Directive directive = directiveEvent.getDirective();
             assertEquals(directive.getResource(), "/");
             assertTrue(directive.getPrincipals().contains(USER.of("fred")));
+            DirectiveEventAware policy = new SingleDomainPolicy("poo");
+            policy.onEvent(directiveEvent);
+        } catch (JsonProcessingException e) {
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException(e);
+        } catch (IOException e) {
+            logger.error(e.getMessage(), e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test
+    public void testIt2() {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            DirectiveBuilder builder = new DirectiveBuilder();
+            String value = mapper.writeValueAsString(GRANT.directive(builder.withPrincipals(USER.of("fred"), ROLE.of("user")).withResource("/a/b/c").withActions("read,write")).inDomain(A.name));
+            logger.info("directive event: "+value);
+            DirectiveEventBuilder eventBuilder = mapper.readValue(value, DirectiveEventBuilder.class);
+            DirectiveEvent directiveEvent = eventBuilder.build();
+            assertEquals(directiveEvent.getEventType(), GRANT);
+            assertTrue(directiveEvent.getDomain().equalsIgnoreCase(TestDomain.A.getName()));
+            Directive directive = directiveEvent.getDirective();
+            assertEquals(directive.getResource(), "/a/b/c");
+            assertTrue(directive.getPrincipals().contains(USER.of("fred")));
+            assertTrue(directive.getPrincipals().contains(ROLE.of("user")));
+            assertTrue(directive.getActions().size() == 2);
+            assertTrue(directive.getActions().contains("read"));
+            assertTrue(directive.getActions().contains("write"));
             DirectiveEventAware policy = new SingleDomainPolicy("poo");
             policy.onEvent(directiveEvent);
         } catch (JsonProcessingException e) {

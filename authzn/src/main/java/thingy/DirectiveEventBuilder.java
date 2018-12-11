@@ -32,7 +32,7 @@ public class DirectiveEventBuilder implements Builder<DirectiveEvent> {
     }
 
     @JsonSetter("directive")
-    public void setDirectiveBuilder(Builder<Directive> builder) {
+    public void setDirectiveBuilder(DirectiveBuilder builder) {
         this.builder = builder;
     }
 
