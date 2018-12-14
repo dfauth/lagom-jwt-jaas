@@ -11,7 +11,7 @@ public class Directive {
     private final Set<ImmutablePrincipal> principals;
     private final Set<String> actions;
     private final String resource;
-    private final AuthorizationDecision authznAction;
+    private final AuthorizationDecision decision;
 
     public Directive(ImmutablePrincipal principal) {
         this(Collections.singleton(principal), "/", Collections.singleton("*"), ALLOW);
@@ -29,7 +29,7 @@ public class Directive {
         this.principals = principals;
         this.resource = resource;
         this.actions = actions;
-        this.authznAction = authznAction;
+        this.decision = authznAction;
     }
 
     public Set<ImmutablePrincipal> getPrincipals() {
@@ -44,8 +44,8 @@ public class Directive {
         return resource;
     }
 
-    public AuthorizationDecision getAuthznAction() {
-        return authznAction;
+    public AuthorizationDecision getDecision() {
+        return decision;
     }
 
     public ResourceActionAuthorizationContext forPrincipal(thingy.Principal p) {
@@ -58,7 +58,7 @@ public class Directive {
 
                 @Override
                 public Optional<AuthorizationDecision> handle(RolePermission permission) {
-                    return Optional.of(ALLOW);
+                    return Optional.of(decision);
                 }
             };
         }

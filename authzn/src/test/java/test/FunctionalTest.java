@@ -14,6 +14,8 @@ import static org.testng.Assert.*;
 import static org.testng.AssertJUnit.assertNotNull;
 import static thingy.AuthorizationDecision.ALLOW;
 import static thingy.AuthorizationDecision.DENY;
+import static thingy.DirectiveBuilder.deny;
+import static thingy.DirectiveEvent.EventType.GRANT;
 import static thingy.PrincipalType.ROLE;
 import static thingy.PrincipalType.USER;
 
@@ -28,7 +30,7 @@ public class FunctionalTest {
         Directive d = new Directive(ROLE.of("role1"));
         policy.onEvent(new DirectiveEvent("admin", d));
         Subject subject = new ImmutableSubject(USER.of("fred"), ROLE.of("role1"));
-        Permission permission = new RolePermission("admin");
+        Permission permission = new RolePermission("domain");
 
         AuthorizationDecision result = policy.permit(subject, permission);
 
@@ -37,6 +39,10 @@ public class FunctionalTest {
         // add an identical directive for the correct domain
         policy.onEvent(new DirectiveEvent("poo", d));
         assertTrue(policy.permit(subject, permission).isAllowed());
+
+        // add a directive for the correct domain denying
+        policy.onEvent(GRANT.directive(deny().withPrincipals(ROLE.of("role1"))).inDomain("poo"));
+        assertTrue(policy.permit(subject, permission).isDenied());
     }
 
     @Test

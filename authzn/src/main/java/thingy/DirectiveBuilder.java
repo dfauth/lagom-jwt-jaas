@@ -6,19 +6,35 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static thingy.AuthorizationDecision.ALLOW;
+import static thingy.AuthorizationDecision.DENY;
+
 public class DirectiveBuilder implements Builder<Directive> {
 
-    private AuthorizationDecision authznAction = AuthorizationDecision.ALLOW;
+    private AuthorizationDecision decision;
     private Set<Builder<ImmutablePrincipal>> principals;
     private Set<String> actions;
     private String resource;
 
-    public Directive build() {
-        return new Directive(principals.stream().map(b -> b.build()).collect(Collectors.toSet()), resource, actions, authznAction);
+    public static DirectiveBuilder allow() {
+        return new DirectiveBuilder().withDecision(ALLOW);
     }
 
-    public void setAuthznAction(AuthorizationDecision authznAction) {
-        this.authznAction = authznAction;
+    public static DirectiveBuilder deny() {
+        return new DirectiveBuilder().withDecision(DENY);
+    }
+
+    private DirectiveBuilder withDecision(AuthorizationDecision decision) {
+        this.decision = decision;
+        return this;
+    }
+
+    public Directive build() {
+        return new Directive(principals.stream().map(b -> b.build()).collect(Collectors.toSet()), resource, actions, decision);
+    }
+
+    public void setDecision(AuthorizationDecision decision) {
+        this.decision = decision;
     }
 
     public void setPrincipals(Set<ImmutablePrincipalBuilder> principals) {

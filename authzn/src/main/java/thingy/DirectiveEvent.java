@@ -46,7 +46,7 @@ public class DirectiveEvent {
             return true;
         } catch(RuntimeException e) {
             logger.error(e.getMessage(), e);
-            return false;
+            throw e;
         }
     }
 
@@ -71,6 +71,10 @@ public class DirectiveEvent {
                     return builder.build();
                 }
             });
+        }
+
+        public DirectiveEventBuilder directive(DirectiveBuilder builder) {
+            return new DirectiveEventBuilder(this, builder);
         }
 
         public void accept(DirectiveEventAware policy, DirectiveEvent event) {
