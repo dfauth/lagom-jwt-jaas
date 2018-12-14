@@ -1,20 +1,15 @@
 package thingy;
 
-import static thingy.AnyAction.ANY_ACTION;
+import java.util.Optional;
 
-public class RolePermission extends Permission<AnyAction> {
+public class RolePermission extends Permission {
 
     public RolePermission(String name) {
-        super(name, "/", ANY_ACTION);
+        super(name, "/");
     }
 
-//    @Override
-//    protected Action<E> parseAction(String action) {
-//        return Action.Actions.from(Action.DefaultAction.class).parser().parseAction(action).orElseThrow(()->new IllegalArgumentException("Oops. No action named "+action));
-//    }
-
-    protected Actions.Parser<AnyAction> parser() {
-        return Actions.of(AnyAction.class).parser();
+    @Override
+    public Optional<AuthorizationDecision> isAuthorizedBy(ResourceActionAuthorizationContext ctx) {
+        return ctx.handle(this);
     }
-
 }

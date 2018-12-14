@@ -37,7 +37,7 @@ public class PermissionTest {
         Directive directive = new Directive(fred);
         AuthorizationPolicy policy = new AuthorizationPolicy() {
             @Override
-            public <E extends Enum<E> & Action<E>> Set<Directive> directivesFor(Permission<E> permission) {
+            public <E extends Enum<E> & Action<E>> Set<Directive> directivesFor(Permission permission) {
                 return Collections.singleton(directive);
             }
         };
@@ -52,7 +52,7 @@ public class PermissionTest {
 //        Directive directive = new Directive(fred);
 //        AuthorizationPolicy policy = new AuthorizationPolicy() {
 //            @Override
-//            public <E extends Enum<E> & Action<E>> Set<Directive> directivesFor(Permission<E> permission) {
+//            public <E extends Enum<E> & Action<E>> Set<Directive> directivesFor(ActionPermission<E> permission) {
 //                return Collections.singleton(directive);
 //            }
 //        };

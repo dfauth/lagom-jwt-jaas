@@ -1,14 +1,6 @@
 package thingy;
 
-public class ReadWritePermission extends Permission<ReadWritePermission.ReadableWritableActions> {
-
-    protected ReadWritePermission(String name, String resource) {
-        super(name, resource);
-    }
-
-    public ReadWritePermission(String name, String resource, String action) {
-        super(name, resource, action);
-    }
+public class ReadWritePermission extends ActionPermission<ReadWritePermission.ReadableWritableActions> {
 
     public ReadWritePermission(String name, String resource, ReadableWritableActions action) {
         super(name, resource, action);

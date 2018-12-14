@@ -1,38 +1,19 @@
 package thingy;
 
-public abstract class Permission<E extends Enum<E> & Action<E>> {
+import java.util.Optional;
+
+public abstract class Permission {
 
     private final String resource;
-    private E action;
     private final String domain;
 
-    protected Permission(String name, String resource) {
+    public Permission(String name, String resource) {
         this.domain = name;
         this.resource = resource;
     }
 
-    public Permission(String name, String resource, String action) {
-        this(name, resource);
-        this.action = parseAction(action);
-    }
-
-    public Permission(String name, String resource, E action) {
-        this(name, resource);
-        this.action = action;
-    }
-
-    protected E parseAction(String action) {
-        return parser().parseAction(action).orElseThrow(()->new IllegalArgumentException("Oops. No action named "+action));
-    }
-
-    protected abstract Actions.Parser<E> parser();
-
     public Resource getResource() {
         return new SimpleResource(resource);
-    }
-
-    public E getAction() {
-        return action;
     }
 
     @Override
@@ -45,14 +26,14 @@ public abstract class Permission<E extends Enum<E> & Action<E>> {
         }
         if(getClass().equals(obj.getClass())) {
             Permission other = getClass().cast(obj);
-            return this.resource.equals(other.resource) && this.action.equals(other.action);
+            return this.resource.equals(other.resource);
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return resource.hashCode() | action.hashCode();
+        return resource.hashCode() | domain.hashCode();
     }
 
     public boolean implies(Permission other) {
@@ -66,4 +47,6 @@ public abstract class Permission<E extends Enum<E> & Action<E>> {
     public boolean impliesDomain(String domain) {
         return this.domain.equalsIgnoreCase(domain);
     }
+
+    public abstract Optional<AuthorizationDecision> isAuthorizedBy(ResourceActionAuthorizationContext ctx);
 }

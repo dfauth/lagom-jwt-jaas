@@ -32,7 +32,7 @@ public class SingleDomainPolicy implements DirectiveEventAware {
     }
 
     @Override
-    public <E extends Enum<E> & Action<E>> Set<Directive> directivesFor(Permission<E> permission) {
+    public <E extends Enum<E> & Action<E>> Set<Directive> directivesFor(Permission permission) {
         return new HashSet(directives);
     }
 }

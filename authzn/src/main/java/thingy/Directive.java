@@ -48,40 +48,24 @@ public class Directive {
         return authznAction;
     }
 
-    public <E extends Enum<E>> Set<Action<E>> forPrincipal(thingy.Principal p) {
+    public ResourceActionAuthorizationContext forPrincipal(thingy.Principal p) {
         if(principals.contains(p)) {
-            // return new Action.Parser<E>(new Action.Actions(clazz).values()).parseActions(actions);
+            return new ResourceActionAuthorizationContext() {
+                @Override
+                public <E extends Enum<E> & Action<E>> Optional<AuthorizationDecision> handle(ActionPermission<E> permission) {
+                    return actions.stream().map(a -> permission.isAuthorizedBy(a)).reduce(Optional.empty(), (o1, o2) -> AuthorizationDecision.compose(o1, o2));
+                }
+
+                @Override
+                public Optional<AuthorizationDecision> handle(RolePermission permission) {
+                    return Optional.of(ALLOW);
+                }
+            };
         }
-        return Collections.emptySet();
+        return cannotAuthorize();
     }
 
-    public ResourceAuthorizationContext forResource(Resource resource) {
-        return new ResourceAuthorizationContext(){
-            @Override
-            public <F extends Enum<F> & Action<F>> ActionResourceAuthorizationContext forAction(F action) {
-                return principal -> {
-                    if(new DirectiveResource(Directive.this).getIterablePath().equals(resource.getIterablePath())) {
-                        if(principals.contains(principal)) {
-                            if(Actions.of(action.getDeclaringClass()).parser().parseActions(getActions()).contains(action)) {
-                                return Optional.ofNullable(getAuthznAction());
-                            }
-                        }
-                    }
-                    return Optional.empty();
-                };
-            }
-        };
-    }
-
-    public <E extends Enum<E> & Action<E>> Optional<AuthorizationDecision> permits(thingy.Principal p, Permission<E> permission) {
-        return forResource(permission.getResource()).forAction(permission.getAction()).forPrincipal(p);
-//        if(principals.contains(p)) {
-//            if(resource.equalsIgnoreCase(permission.getResource())) {
-//                if(permission.getActions().implies(actions)) {
-//                    return Optional.of(authznAction);
-//                }
-//            }
-//        }
-//        return Optional.empty();
+    private ResourceActionAuthorizationContext cannotAuthorize() {
+        return permission -> Optional.empty();
     }
 }
