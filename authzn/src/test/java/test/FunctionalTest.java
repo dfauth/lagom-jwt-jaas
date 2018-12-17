@@ -72,16 +72,49 @@ public class FunctionalTest {
     @Test
     public void testPriviledgedActionRunner() {
         TestToggle result = new TestToggle();
-        TestToggle toggle = ALLOW.run(() -> result.toggle());
+        TestToggle finalResult1 = result;
+        TestToggle toggle = ALLOW.run(() -> finalResult1.toggle());
         assertNotNull(toggle);
         assertTrue(toggle.wasToggled());
 
         toggle.reset();
         TestToggle tmp = null;
         try {
-            tmp = DENY.run(() -> result.toggle());
+            TestToggle finalResult2 = result;
+            tmp = DENY.run(() -> finalResult2.toggle());
         } catch (SecurityException e) {
             logger.info(e.getMessage(), e);
+        }
+        assertNull(tmp);
+        assertNotNull(toggle);
+        assertFalse(toggle.wasToggled());
+
+        toggle.reset();
+        result = new TestToggle("Oops");
+        try {
+            TestToggle finalResult = result;
+            tmp = ALLOW.run(() -> finalResult.toggle());
+        } catch (SecurityException e) {
+            logger.info(e.getMessage(), e);
+            fail("Unexpected SecurityException thrown", e);
+        } catch (Exception e) {
+            logger.info("Expected exception "+e.getMessage(), e);
+            assertEquals("java.lang.Exception: Oops", e.getMessage());
+        }
+        assertNull(tmp);
+        assertNotNull(toggle);
+        assertFalse(toggle.wasToggled());
+
+        toggle.reset();
+        result = new TestToggle("Oops");
+        try {
+            TestToggle finalResult = result;
+            tmp = DENY.run(() -> finalResult.toggle());
+        } catch (SecurityException e) {
+            logger.info("Expected exception "+e.getMessage(), e);
+        } catch (Exception e) {
+            logger.info("Expected exception "+e.getMessage(), e);
+            fail("Unexpected Exception thrown", e);
         }
         assertNull(tmp);
         assertNotNull(toggle);
