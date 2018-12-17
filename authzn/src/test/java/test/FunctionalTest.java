@@ -9,7 +9,6 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import static org.testng.Assert.*;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -73,14 +72,14 @@ public class FunctionalTest {
     @Test
     public void testPriviledgedActionRunner() {
         TestToggle result = new TestToggle();
-        TestToggle toggle = ALLOW.run((Callable<TestToggle>)() -> result.toggle());
+        TestToggle toggle = ALLOW.run(() -> result.toggle());
         assertNotNull(toggle);
         assertTrue(toggle.wasToggled());
 
         toggle.reset();
         TestToggle tmp = null;
         try {
-            tmp = DENY.run((Callable<TestToggle>)() -> result.toggle());
+            tmp = DENY.run(() -> result.toggle());
         } catch (SecurityException e) {
             logger.info(e.getMessage(), e);
         }
@@ -91,74 +90,92 @@ public class FunctionalTest {
 
     @Test
     public void testMonad() {
-        TestToggle toggle = new TestToggle();
-        TestToggle finalToggle = toggle;
-        Function<Void, TestToggle> f = nothing -> finalToggle.toggle();
-        AuthorizationDecisionMonad<TestToggle> monad = AuthorizationDecisionMonad.of(f);
-        CompletionListener a = new CompletionListener(r -> logger.info("result is " + r));
-        CompletionListener b = new CompletionListener(r -> logger.info("result is failure: "+r));
-        CompletionListener c = new CompletionListener(r -> logger.info("did not run: "+r));
-        monad.onComplete(a);
-        monad.onException(b);
-        monad.onAuthorizationFailure(c);
+        try {
+            TestToggle toggle = new TestToggle();
+            TestToggle finalToggle = toggle;
+            Callable<TestToggle> f = () -> finalToggle.toggle();
+            AuthorizationDecisionMonad<TestToggle> monad = AuthorizationDecisionMonad.of(f);
+            CompletionListener a = new CompletionListener(r -> logger.info("result is " + r));
+            CompletionListener b = new CompletionListener(r -> logger.info("result is failure: "+r));
+            CompletionListener c = new CompletionListener(r -> logger.info("did not run: "+r));
+            monad.onComplete(a);
+            monad.onException(b);
+            monad.onAuthorizationFailure(c);
 
-        AuthorizationDecisionMonad<TestToggle> result = monad.apply(ALLOW);
+            AuthorizationDecisionMonad<TestToggle> result = monad.apply(ALLOW);
 
-        assertNotNull(result);
-        assertTrue(a.wasSet());
-        assertTrue(toggle.wasToggled());
-        assertFalse(b.wasSet());
-        assertFalse(c.wasSet());
-        a.reset();b.reset();c.reset();
+            assertNotNull(result);
+            assertTrue(a.wasSet());
+            assertTrue(toggle.wasToggled());
+            assertFalse(b.wasSet());
+            assertFalse(c.wasSet());
+            a.reset();
+            b.reset();
+            c.reset();
 
-        toggle.reset();
-        toggle = new TestToggle("Oops");
-        TestToggle finalToggle1 = toggle;
-        AuthorizationDecisionMonad<TestToggle> monad1 = AuthorizationDecisionMonad.of(n -> finalToggle1.toggle());
-        monad1.onComplete(a);
-        monad1.onException(b);
-        monad1.onAuthorizationFailure(c);
-        result = monad1.apply(ALLOW);
+            toggle.reset();
+            toggle = new TestToggle("Oops");
+            TestToggle finalToggle1 = toggle;
+            AuthorizationDecisionMonad<TestToggle> monad1 = AuthorizationDecisionMonad.of(() -> finalToggle1.toggle());
+            monad1.onComplete(a);
+            monad1.onException(b);
+            monad1.onAuthorizationFailure(c);
+            result = monad1.apply(ALLOW);
 
-        assertNotNull(result);
-        assertFalse(a.wasSet());
-        assertTrue(toggle.wasToggled());
-        assertTrue(b.wasSet());
-        assertFalse(c.wasSet());
-        a.reset();b.reset();c.reset();
+            assertNotNull(result);
+            assertFalse(a.wasSet());
+            assertTrue(toggle.wasToggled());
+            assertTrue(b.wasSet());
+            assertFalse(c.wasSet());
+            a.reset();
+            b.reset();
+            c.reset();
 
-        result = monad1.apply(DENY);
+            result = monad1.apply(DENY);
 
-        assertNotNull(result);
-        assertFalse(a.wasSet());
-        assertFalse(toggle.wasToggled());
-        assertFalse(b.wasSet());
-        assertTrue(c.wasSet());
-        a.reset();b.reset();c.reset();
+            assertNotNull(result);
+            assertFalse(a.wasSet());
+            assertFalse(toggle.wasToggled());
+            assertFalse(b.wasSet());
+            assertTrue(c.wasSet());
+            a.reset();
+            b.reset();
+            c.reset();
+        } catch (Exception e) {
+            logger.info(e.getMessage(), e);
+            fail("Unexpected exception: "+e.getMessage(), e);
+        }
     }
 
     @Test
     public void testMap() {
-        TestToggle toggle = new TestToggle();
-        TestToggle finalToggle = toggle;
-        Function<Void, TestToggle> f = nothing -> finalToggle.toggle();
-        AuthorizationDecisionMonad<TestToggle> monad = AuthorizationDecisionMonad.of(f);
-        CompletionListener a = new CompletionListener(r -> logger.info("result is " + r));
-        CompletionListener b = new CompletionListener(r -> logger.info("result is failure: "+r));
-        CompletionListener c = new CompletionListener(r -> logger.info("did not run: "+r));
+        try {
+            TestToggle toggle = new TestToggle();
+            TestToggle finalToggle = toggle;
+            Callable<TestToggle> f = () -> finalToggle.toggle();
+            AuthorizationDecisionMonad<TestToggle> monad = AuthorizationDecisionMonad.of(f);
+            CompletionListener a = new CompletionListener(r -> logger.info("result is " + r));
+            CompletionListener b = new CompletionListener(r -> logger.info("result is failure: "+r));
+            CompletionListener c = new CompletionListener(r -> logger.info("did not run: "+r));
 
-        AuthorizationDecisionMonad<Boolean> monad1 = monad.map(TestToggle::wasToggled);
-        monad1.onComplete(a);
-        monad1.onException(b);
-        monad1.onAuthorizationFailure(c);
-        AuthorizationDecisionMonad<Boolean> result = monad1.apply(ALLOW);
+            AuthorizationDecisionMonad<Boolean> monad1 = monad.map(TestToggle::wasToggled);
+            monad1.onComplete(a);
+            monad1.onException(b);
+            monad1.onAuthorizationFailure(c);
+            AuthorizationDecisionMonad<Boolean> result = monad1.apply(ALLOW);
 
-        assertNotNull(result);
-        assertTrue(result.isSuccess());
-        assertTrue(result.get());
-        assertTrue(a.wasSet());
-        assertTrue(result.get());
-        a.reset();b.reset();c.reset();
+            assertNotNull(result);
+            assertTrue(result.isSuccess());
+            assertTrue(result.get());
+            assertTrue(a.wasSet());
+            assertTrue(result.get());
+            a.reset();
+            b.reset();
+            c.reset();
+        } catch (Exception e) {
+            logger.info(e.getMessage(), e);
+            fail("Unexpected exception: "+e.getMessage(), e);
+        }
     }
 
     class TestToggle {
@@ -173,11 +190,11 @@ public class FunctionalTest {
             this.throwable = Optional.of(oops);
         }
 
-        public TestToggle toggle() {
+        public TestToggle toggle() throws Exception {
             toggled = true;
-            throwable.map(msg -> {
-                throw new RuntimeException(msg);
-            });
+            if(throwable.isPresent()) {
+                throw new Exception(throwable.get());
+            }
             return this;
         }
 

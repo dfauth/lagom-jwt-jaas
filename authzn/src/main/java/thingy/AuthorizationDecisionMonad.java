@@ -1,12 +1,8 @@
 package thingy;
 
-import java.security.PrivilegedAction;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
-
-import static thingy.CallableRunner.adapter;
 
 public class AuthorizationDecisionMonad<R> {
 
@@ -53,18 +49,6 @@ public class AuthorizationDecisionMonad<R> {
             onAuthorizationFailure.accept(e);
             return new AuthorizationFailure(e);
         }
-    }
-
-    public static <R> AuthorizationDecisionMonad<R> of(PrivilegedAction<R> f) {
-        return of(adapter(f));
-    }
-
-    public static <R> AuthorizationDecisionMonad<R> of(Function<Void,R> f) {
-        return of(adapter(f));
-    }
-
-    public static <R> AuthorizationDecisionMonad<R> of(Supplier<R> f) {
-        return of(adapter(f));
     }
 
     public static <R> AuthorizationDecisionMonad<R> of(Callable<R> f) {
