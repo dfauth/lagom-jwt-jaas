@@ -9,8 +9,4 @@ public interface ResourceActionAuthorizationContext {
     }
 
     Optional<AuthorizationDecision> handle(RolePermission permission);
-
-//    default Optional<AuthorizationDecision> handle(RolePermission permission) {
-//        return Optional.of(ALLOW); // allows all role permissions
-//    }
 }

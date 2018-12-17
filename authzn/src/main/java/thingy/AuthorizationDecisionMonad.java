@@ -36,14 +36,6 @@ public class AuthorizationDecisionMonad<R> {
         return new AuthorizationDecisionMonad<U>(() -> g.apply(f.call()));
     }
 
-//    public <U> AuthorizationDecisionMonad<U> flatMap(Function<? super PriviledgedActionResult<R>, AuthorizationDecisionMonad<? extends U>> f) {
-//        return new AuthorizationDecisionMonad<U>(v -> f.apply(invoke()).invoke());
-//    }
-//
-//    public <U> AuthorizationDecisionMonad<Tuple2<R, U>> zip(AuthorizationDecisionMonad<U> reader) {
-//        return this.flatMap(a -> reader.map(b -> new Tuple2<>(a, b)));
-//    }
-
     public AuthorizationDecisionMonad<R> apply(AuthorizationDecision decision) {
         if(decision.isAllowed()) {
             try {
@@ -105,26 +97,4 @@ public class AuthorizationDecisionMonad<R> {
         return false;
     }
 
-//    public R apply(AuthorizationDecision decision) {
-//        return decision.run(() -> f.apply(null));
-//    }
-//
-//    static <R> AuthorizationDecisionMonad<R> monad(Function<Void, R> f) {
-//        return monad(adapter(f));
-//    }
-//
-//    static <R> AuthorizationDecisionMonad<R> monad(Callable<R> f) {
-//        return monad(adapter(f));
-//    }
-//
-//    static <R> AuthorizationDecisionMonad<R> monad(PrivilegedAction<R> action) {
-//        try {
-//            R result = run(action);
-//            return new Success(result);
-//        } catch (SecurityException e) {
-//            return new AuthorizationFailure(e);
-//        } catch (RuntimeException e) {
-//            return new ExecutionFailure(e);
-//        }
-//    }
 }
