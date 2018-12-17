@@ -6,6 +6,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import static thingy.CallableRunner.adapter;
+
 public class AuthorizationDecisionMonad<R> {
 
     private Consumer<R> onComplete = r -> {};
@@ -51,18 +53,6 @@ public class AuthorizationDecisionMonad<R> {
             onAuthorizationFailure.accept(e);
             return new AuthorizationFailure(e);
         }
-    }
-
-    public static <R> Callable<R> adapter(PrivilegedAction<R> action) {
-        return () -> action.run();
-    }
-
-    public static <R> Callable<R> adapter(Supplier<R> supplier) {
-        return () -> supplier.get();
-    }
-
-    public static <R> Callable<R> adapter(Function<Void, R> f) {
-        return () -> f.apply(null);
     }
 
     public static <R> AuthorizationDecisionMonad<R> of(PrivilegedAction<R> f) {

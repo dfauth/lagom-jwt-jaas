@@ -6,6 +6,7 @@ import org.testng.annotations.Test;
 import thingy.*;
 
 import java.util.Optional;
+import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -72,14 +73,14 @@ public class FunctionalTest {
     @Test
     public void testPriviledgedActionRunner() {
         TestToggle result = new TestToggle();
-        TestToggle toggle = ALLOW.run(() -> result.toggle());
+        TestToggle toggle = ALLOW.run((Callable<TestToggle>)() -> result.toggle());
         assertNotNull(toggle);
         assertTrue(toggle.wasToggled());
 
         toggle.reset();
         TestToggle tmp = null;
         try {
-            tmp = DENY.run(() -> result.toggle());
+            tmp = DENY.run((Callable<TestToggle>)() -> result.toggle());
         } catch (SecurityException e) {
             logger.info(e.getMessage(), e);
         }

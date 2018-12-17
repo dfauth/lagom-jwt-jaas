@@ -1,11 +1,17 @@
 package thingy;
 
-import java.security.PrivilegedAction;
-import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public enum AuthorizationDecision implements PriviledgedActionRunner {
+import java.util.Optional;
+import java.util.concurrent.Callable;
+
+public enum AuthorizationDecision implements CallableRunner {
+
     ALLOW,
     DENY;
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthorizationDecision.class);
 
     public boolean isAllowed() {
         return this == ALLOW;
@@ -20,11 +26,20 @@ public enum AuthorizationDecision implements PriviledgedActionRunner {
     }
 
     @Override
-    public <R> R run(PrivilegedAction<R> action) throws SecurityException {
-        if(isAllowed()) {
-            return action.run();
+    public <R> R run(Callable<R> callable) throws SecurityException {
+        try {
+            if(isAllowed()) {
+                return callable.call();
+            } else {
+                throw new SecurityException("Oops, not allowed");
+            }
+        } catch (SecurityException e) {
+            logger.info(e.getMessage(), e);
+            throw e;
+        } catch (Exception e) {
+            logger.info(e.getMessage(), e);
+            throw new RuntimeException(e);
         }
-        throw new SecurityException("Oops, not allowed");
     }
 
     public static Optional<AuthorizationDecision> compose(Optional<AuthorizationDecision> o1, Optional<AuthorizationDecision> o2) {
