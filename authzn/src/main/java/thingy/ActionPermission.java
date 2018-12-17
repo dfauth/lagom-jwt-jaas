@@ -1,6 +1,7 @@
 package thingy;
 
 import java.util.Optional;
+import java.util.Set;
 
 import static thingy.AuthorizationDecision.ALLOW;
 
@@ -13,8 +14,8 @@ public abstract class ActionPermission<E extends Enum<E> & Action<E>> extends Pe
         this.action = action;
     }
 
-    protected E parseAction(String action) {
-        return parser().parseAction(action).orElseThrow(()->new IllegalArgumentException("Oops. No action named "+action));
+    protected Set<E> parseActions(String action) {
+        return parser().parseActions(action);
     }
 
     protected abstract Actions.Parser<E> parser();
@@ -45,7 +46,7 @@ public abstract class ActionPermission<E extends Enum<E> & Action<E>> extends Pe
     }
 
     public Optional<AuthorizationDecision> isAuthorizedBy(String action) {
-        return isAuthorizedBy(this.parseAction(action));
+        return this.parseActions(action).stream().map(a -> isAuthorizedBy(a)).reduce(Optional.empty(), (o1, o2)-> AuthorizationDecision.compose(o1, o2));
     }
 
     public Optional<AuthorizationDecision> isAuthorizedBy(E action) {

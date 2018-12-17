@@ -1,13 +1,15 @@
 package thingy;
 
+import java.util.Set;
+
 public class ReadWritePermission extends ActionPermission<ReadWritePermission.ReadableWritableActions> {
 
     public ReadWritePermission(String name, String resource, ReadableWritableActions action) {
         super(name, resource, action);
     }
 
-    protected ReadableWritableActions parseAction(String action) {
-        return Actions.of(ReadableWritableActions.class).parser().parseAction(action).orElseThrow(()-> new IllegalArgumentException("Oops. No action named "+action));
+    protected Set<ReadableWritableActions> parseActions(String action) {
+        return Actions.of(ReadableWritableActions.class).parser().parseActions(action);
     }
 
     @Override

@@ -11,6 +11,7 @@ import java.util.Set;
 
 import static org.testng.Assert.assertTrue;
 import static thingy.PrincipalType.USER;
+import static thingy.ReadWritePermission.ReadableWritableActions.WRITE;
 
 
 public class PermissionTest {
@@ -45,23 +46,22 @@ public class PermissionTest {
         assertTrue(authorizationDecision.isAllowed());
     }
 
-//    @Test
-//    public void testAll() {
-//        String domain = "domain";
-//        ImmutablePrincipal fred = USER.of("fred");
-//        Directive directive = new Directive(fred);
-//        AuthorizationPolicy policy = new AuthorizationPolicy() {
-//            @Override
-//            public <E extends Enum<E> & Action<E>> Set<Directive> directivesFor(ActionPermission<E> permission) {
-//                return Collections.singleton(directive);
-//            }
-//        };
-//        AuthorizationDecision authorizationDecision = policy.permitForAllOf(
-//                new ImmutableSubject(fred),
-//                        new RolePermission(domain),
-//                        new ReadWritePermission(domain, "a/b/c/d", READ)
-//        );
-//        assertTrue(authorizationDecision.isAllowed());
-//    }
+    @Test
+    public void testRead() {
+        String domain = "domain";
+        ImmutablePrincipal fred = USER.of("fred");
+        Directive directive = new Directive(fred);
+        AuthorizationPolicy policy = new AuthorizationPolicy() {
+            @Override
+            public <E extends Enum<E> & Action<E>> Set<Directive> directivesFor(Permission permission) {
+                return Collections.singleton(directive);
+            }
+        };
+        AuthorizationDecision authorizationDecision = policy.permit(
+                new ImmutableSubject(fred),
+                        new ReadWritePermission(domain, "/a/b/c/d", WRITE)
+        );
+        assertTrue(authorizationDecision.isAllowed()); // should pass because by default, all actions, all resources are allowed
+    }
 
 }
